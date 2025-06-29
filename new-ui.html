@@ -139,7 +139,7 @@
         }
 
         .assets-list {
-            padding: 0;
+            padding: 6px 12px;
             max-height: 600px;
             overflow-y: auto;
         }
@@ -151,6 +151,7 @@
             background: white;
             overflow: hidden;
             position: relative;
+            margin-top: 3px;
         }
 
         .asset-card:hover {
@@ -306,7 +307,11 @@
 
         .cart-count {
             background: rgba(255,255,255,0.2);
-            padding: 5px 10px;
+            height: 24px;
+            width: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             border-radius: 15px;
             font-size: 14px;
             font-weight: 600;
@@ -883,6 +888,40 @@
             border-radius: 6px;
         }
 
+        /* Damaged/Lost Controls Styling */
+        .damaged-lost-controls {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+
+        .damaged-lost-controls .form-label-sm {
+            font-size: 11px;
+            font-weight: 600;
+            color: #dc3545;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .damaged-lost-controls .form-control {
+            font-size: 12px;
+            height: 30px;
+            border: 1px solid #fed7d7;
+        }
+
+        .damaged-lost-controls .form-control:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        .damaged-lost-controls textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
         .edit-asset-item {
             display: flex;
             align-items: center;
@@ -1392,6 +1431,54 @@
                             </div>
                         </div>
                     </div>
+        <!-- Thông tin thời gian -->
+        <div class="enhanced-card mb-4">
+            <div class="card-header-enhanced">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar mr-2 text-primary"></i>
+                    Thông tin thời gian
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-plus mr-2 text-success"></i>Ngày nhận/cấp <span
+                                    class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="receiveDate" onchange="updateReturnDate()">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-minus mr-2 text-warning"></i>Ngày trả dự kiến</label>
+                            <input type="date" class="form-control" id="returnDate" readonly>
+                            <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Tự động tính +14 ngày từ ngày
+                                nhận</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mục đích sử dụng -->
+        <div class="enhanced-card mb-4">
+            <div class="card-header-enhanced">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit mr-2 text-primary"></i>
+                    Mục đích sử dụng <span class="text-danger">*</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <textarea class="form-control" id="purposeOfUse" rows="3" 
+                              placeholder="Nhập mục đích sử dụng tài sản..." required></textarea>
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Vui lòng mô tả chi tiết mục đích sử dụng tài sản
+                    </small>
+                </div>
+            </div>
+        </div>
 
                     <!-- Chọn loại phiếu -->
                     <div class="enhanced-card mb-4">
@@ -1532,32 +1619,7 @@
                         </div>
                     </div>
 
-                    <!-- Thông tin thời gian -->
-                    <div class="enhanced-card">
-                        <div class="card-header-enhanced">
-                            <h5 class="mb-0">
-                                <i class="fas fa-calendar mr-2 text-primary"></i>
-                                Thông tin thời gian
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label><i class="fas fa-calendar-plus mr-2 text-success"></i>Ngày nhận/cấp <span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" id="receiveDate" onchange="updateReturnDate()">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label><i class="fas fa-calendar-minus mr-2 text-warning"></i>Ngày trả dự kiến</label>
-                                        <input type="date" class="form-control" id="returnDate" readonly>
-                                        <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Tự động tính +14 ngày từ ngày nhận</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            
                 </div>
 
                 <div class="col-lg-4">
@@ -2065,8 +2127,9 @@
                 status: 'Chờ duyệt',
                 status_class: 'warning',
                 assets: [
-                    { name: 'Laptop Dell XPS 13', quantity: 1, type: 'Máy tính' },
-                    { name: 'Màn hình Dell 24"', quantity: 1, type: 'Thiết bị văn phòng' }
+                    { name: 'Laptop Dell XPS 13', quantity: 2, type: 'Máy tính', item_type_key: 1, registration_quantity: 3 },
+                    { name: 'Màn hình Dell 24"', quantity: 1, type: 'Thiết bị văn phòng', item_type_key: 2, registration_quantity: 1 },
+                    { name: 'Máy in Canon', quantity: 1, type: 'Thiết bị văn phòng', item_type_key: 3, registration_quantity: 2 }
                 ],
                 receive_date: '16/06/2025',
                 return_date: '30/06/2025',
@@ -2081,7 +2144,8 @@
                 status: 'Đã duyệt',
                 status_class: 'success',
                 assets: [
-                    { name: 'Ghế văn phòng', quantity: 2, type: 'Nội thất' }
+                    { name: 'Ghế văn phòng', quantity: 1, type: 'Nội thất', item_type_key: 3, registration_quantity: 3 },
+                    { name: 'Bàn làm việc', quantity: 2, type: 'Nội thất', item_type_key: 1, registration_quantity: 2 }
                 ],
                 receive_date: '10/06/2025',
                 return_date: '15/06/2025',
@@ -2096,7 +2160,7 @@
                 status: 'Từ chối',
                 status_class: 'danger',
                 assets: [
-                    { name: 'Máy in HP LaserJet', quantity: 1, type: 'Thiết bị văn phòng' }
+                    { name: 'Máy in HP LaserJet', quantity: 1, type: 'Thiết bị văn phòng', item_type_key: 4, registration_quantity: 1 }
                 ],
                 receive_date: '14/06/2025',
                 return_date: '28/06/2025',
@@ -3270,7 +3334,7 @@
                     <div class="edit-info-body">
                         <div class="edit-asset-list" id="editableAssetList">
                             ${form.assets.map((asset, index) => `
-                                <div class="edit-asset-item" data-asset-index="${index}">
+                                <div class="edit-asset-item" data-asset-index="${index}" data-item-type-key="${asset.item_type_key || 1}">
                                     <img src="https://placehold.co/50x50/e3f2fd/1976d2?text=${asset.type.charAt(0)}" 
                                          class="edit-asset-image" alt="${asset.name}">
                                     <div class="edit-asset-details">
@@ -3288,10 +3352,35 @@
                                             <input type="number" class="form-control form-control-sm quantity-input" 
                                                    value="${asset.quantity}" min="0" max="999" 
                                                    onchange="updateAssetQuantity(${index}, this.value)"
-                                                   data-original-quantity="${asset.quantity}">
+                                                   data-original-quantity="${asset.quantity}"
+                                                   data-registration-quantity="${asset.registration_quantity || asset.quantity}">
                                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="adjustQuantity(${index}, 1)">
                                                 <i class="fas fa-plus"></i>
                                             </button>
+                                        </div>
+                                        <div class="damaged-lost-controls mt-2" id="damagedLostControls_${index}" style="display: none;">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <label class="form-label-sm">Hỏng/Mất:</label>
+                                                    <input type="number" class="form-control form-control-sm damaged-quantity" 
+                                                           value="0" min="0" max="${asset.quantity}"
+                                                           onchange="updateDamagedQuantity(${index}, this.value)"
+                                                           placeholder="Số lượng">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label-sm">Lý do:</label>
+                                                    <select class="form-control form-control-sm damage-reason" onchange="updateDamageReason(${index}, this.value)">
+                                                        <option value="">Chọn lý do</option>
+                                                        <option value="damaged">Hỏng</option>
+                                                        <option value="lost">Mất</option>
+                                                        <option value="broken">Vỡ</option>
+                                                        <option value="worn">Hao mòn</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <textarea class="form-control form-control-sm mt-2" rows="2" 
+                                                      placeholder="Ghi chú chi tiết về hỏng/mất..."
+                                                      onchange="updateDamageNotes(${index}, this.value)"></textarea>
                                         </div>
                                         <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="removeAssetItem(${index})" title="Xóa tài sản">
                                             <i class="fas fa-trash"></i>
@@ -3434,6 +3523,9 @@
             const asset = editFormData.assets[assetIndex];
             const originalQuantity = asset.quantity;
             const quantity = parseInt(newQuantity) || 0;
+            const quantityInput = document.querySelector(`[data-asset-index="${assetIndex}"] .quantity-input`);
+            const registrationQuantity = parseInt(quantityInput?.getAttribute('data-registration-quantity') || originalQuantity);
+            const itemTypeKey = parseInt(document.querySelector(`[data-asset-index="${assetIndex}"]`)?.getAttribute('data-item-type-key') || 1);
             
             // Update the asset quantity
             asset.quantity = quantity;
@@ -3445,6 +3537,28 @@
                     assetItem.classList.add('modified');
                 } else {
                     assetItem.classList.remove('modified');
+                }
+            }
+            
+            // Show/hide damaged/lost controls for item types 1 and 3 when quantity differs from registration
+            const damagedLostControls = document.getElementById(`damagedLostControls_${assetIndex}`);
+            if (damagedLostControls && (itemTypeKey === 1 || itemTypeKey === 3)) {
+                const quantityDiff = registrationQuantity - quantity;
+                if (quantityDiff > 0) {
+                    damagedLostControls.style.display = 'block';
+                    // Auto-populate damaged quantity with the difference
+                    const damagedQuantityInput = damagedLostControls.querySelector('.damaged-quantity');
+                    if (damagedQuantityInput && parseInt(damagedQuantityInput.value) === 0) {
+                        damagedQuantityInput.value = quantityDiff;
+                        damagedQuantityInput.max = registrationQuantity;
+                        updateDamagedQuantity(assetIndex, quantityDiff);
+                    }
+                } else {
+                    damagedLostControls.style.display = 'none';
+                    // Reset damaged/lost data when not needed
+                    if (asset.damage_info) {
+                        delete asset.damage_info;
+                    }
                 }
             }
             
@@ -3474,6 +3588,76 @@
             // Update any summary displays that show total quantities, etc.
             const totalItems = editFormData.assets.reduce((sum, asset) => sum + asset.quantity, 0);
             console.log(`Total items: ${totalItems}`);
+        }
+
+        // Damage/Lost functionality
+        function updateDamagedQuantity(assetIndex, damagedQuantity) {
+            if (!editFormData || !editFormData.assets[assetIndex]) return;
+            
+            const asset = editFormData.assets[assetIndex];
+            const damaged = parseInt(damagedQuantity) || 0;
+            
+            // Initialize damage_info if not exists
+            if (!asset.damage_info) {
+                asset.damage_info = {
+                    damaged_quantity: 0,
+                    damage_reason: '',
+                    damage_notes: ''
+                };
+            }
+            
+            asset.damage_info.damaged_quantity = damaged;
+            
+            // Validate damaged quantity doesn't exceed registration quantity
+            const quantityInput = document.querySelector(`[data-asset-index="${assetIndex}"] .quantity-input`);
+            const registrationQuantity = parseInt(quantityInput?.getAttribute('data-registration-quantity') || asset.quantity);
+            
+            if (damaged > registrationQuantity) {
+                const damagedInput = document.querySelector(`#damagedLostControls_${assetIndex} .damaged-quantity`);
+                if (damagedInput) {
+                    damagedInput.value = registrationQuantity;
+                    asset.damage_info.damaged_quantity = registrationQuantity;
+                }
+                showNotification('Số lượng hỏng/mất không thể vượt quá số lượng đăng ký', 'warning');
+            }
+            
+            console.log(`Asset ${assetIndex} damaged quantity: ${asset.damage_info.damaged_quantity}`);
+        }
+
+        function updateDamageReason(assetIndex, reason) {
+            if (!editFormData || !editFormData.assets[assetIndex]) return;
+            
+            const asset = editFormData.assets[assetIndex];
+            
+            // Initialize damage_info if not exists
+            if (!asset.damage_info) {
+                asset.damage_info = {
+                    damaged_quantity: 0,
+                    damage_reason: '',
+                    damage_notes: ''
+                };
+            }
+            
+            asset.damage_info.damage_reason = reason;
+            console.log(`Asset ${assetIndex} damage reason: ${reason}`);
+        }
+
+        function updateDamageNotes(assetIndex, notes) {
+            if (!editFormData || !editFormData.assets[assetIndex]) return;
+            
+            const asset = editFormData.assets[assetIndex];
+            
+            // Initialize damage_info if not exists
+            if (!asset.damage_info) {
+                asset.damage_info = {
+                    damaged_quantity: 0,
+                    damage_reason: '',
+                    damage_notes: ''
+                };
+            }
+            
+            asset.damage_info.damage_notes = notes;
+            console.log(`Asset ${assetIndex} damage notes: ${notes}`);
         }
 
         // API Integration functions
