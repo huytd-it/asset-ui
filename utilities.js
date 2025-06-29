@@ -21,12 +21,12 @@
 // === AUTH MODULE (giữ nguyên hoàn toàn) ===
 var Auth = (function () {
   var _permissions = [];
-  _permissions = JSON.parse(
-    crm_get_localStorge("_user_permissions")
-      ? crm_get_localStorge("_user_permissions")
-      : "[]"
-  );
-  var _position = crm_get_localStorge("_user_position");
+  // _permissions = JSON.parse(
+  //   crm_get_localStorge("_user_permissions")
+  //     ? crm_get_localStorge("_user_permissions")
+  //     : "[]"
+  // );
+  // var _position = crm_get_localStorge("_user_position");
 
   return {
     abort: function (description = "") {
@@ -808,7 +808,7 @@ var Http = function () {
     },
   };
 };
-var host = crm_get_localStorge("_api_host");
+// var host = crm_get_localStorge("_api_host");
 
 // === INPUT TYPE MODULE (giữ nguyên hoàn toàn) ===
 var InputType = function (_selector = null, options = {}) {

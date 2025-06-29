@@ -2024,6 +2024,10 @@
     <!-- Tom Select JS -->
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     
+    <!-- Local JavaScript Files -->
+    <script src="utilities.js"></script>
+    <script src="service.js"></script>
+    
     <script>
         // State management
         let currentStep = 1;
@@ -2267,7 +2271,8 @@
                     nextBtn.innerHTML = 'Tiếp theo<i class="fas fa-arrow-right ml-2"></i>';
                     break;
                 case 3:
-                    nextBtn.disabled = !selectedFacility;
+                    const purposeOfUse = document.getElementById('purposeOfUse')?.value?.trim();
+                    nextBtn.disabled = !selectedFacility || !purposeOfUse;
                     nextBtn.innerHTML = 'Tiếp theo<i class="fas fa-arrow-right ml-2"></i>';
                     break;
                 case 4:
@@ -2298,8 +2303,14 @@
                     goToStep(3);
                     break;
                 case 3:
-                    if (selectedFacility) {
+                    const purposeOfUse = document.getElementById('purposeOfUse')?.value?.trim();
+                    if (selectedFacility && purposeOfUse) {
                         goToStep(4);
+                    } else {
+                        let message = 'Vui lòng điền đầy đủ thông tin:';
+                        if (!selectedFacility) message += '\n- Chọn cơ sở';
+                        if (!purposeOfUse) message += '\n- Nhập mục đích sử dụng';
+                        alert(message);
                     }
                     break;
                 case 4:
@@ -2421,7 +2432,18 @@
                     <i class="fas fa-building mr-2 text-primary"></i>
                     <strong>Cơ sở:</strong> ${facilityName}
                 </div>`;
-                canProceed = true;
+                
+                // Check if purpose is also filled
+                const purposeOfUse = document.getElementById('purposeOfUse')?.value?.trim();
+                if (purposeOfUse) {
+                    html += `<div class="mb-3 p-3 bg-light rounded">
+                        <i class="fas fa-edit mr-2 text-primary"></i>
+                        <strong>Mục đích sử dụng:</strong> ${purposeOfUse}
+                    </div>`;
+                    canProceed = true;
+                } else {
+                    canProceed = false;
+                }
             }
             
             if (selectedFormType) {
@@ -2987,11 +3009,22 @@
             updateFormsSummary();
         }
 
-        function createForms() {
+        async function createForms() {
             const selectedForms = document.querySelectorAll('#formsToCreate input[type="checkbox"]:checked');
             
             if (selectedForms.length === 0) {
                 alert('Vui lòng chọn ít nhất một phiếu để tạo!');
+                return;
+            }
+
+            // Collect form data
+            const purposeOfUse = document.getElementById('purposeOfUse')?.value?.trim();
+            const receiveDate = document.getElementById('receiveDate')?.value;
+            const returnDate = document.getElementById('returnDate')?.value;
+            
+            // Validate required fields
+            if (!selectedFacility || !purposeOfUse || !receiveDate || !returnDate) {
+                alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
                 return;
             }
 
@@ -3000,34 +3033,88 @@
             const progressBarElement = progressBar.querySelector('.progress-bar');
             progressBar.style.display = 'block';
 
-            let progress = 0;
             const totalForms = selectedForms.length;
             const createdForms = [];
+            let progress = 0;
 
-            // Simulate saving process
-            const saveInterval = setInterval(() => {
-                progress += (100 / totalForms) / 10;
-                progressBarElement.style.width = Math.min(progress, 100) + '%';
-
-                if (progress >= 100) {
-                    clearInterval(saveInterval);
+            try {
+                // Process each selected form
+                for (let i = 0; i < selectedForms.length; i++) {
+                    const formCheckbox = selectedForms[i];
+                    const formCard = formCheckbox.closest('.enhanced-card');
+                    const managerName = formCard.querySelector('strong').textContent;
                     
-                    // Generate form IDs
-                    for (let i = 0; i < totalForms; i++) {
+                    // Prepare form data for API
+                    const formData = new FormData();
+                    formData.append('facility', selectedFacility === 'facility1' ? 'MSC' : 'HSC');
+                    formData.append('type_key', selectedFormType || 'LAB_' + (selectedFacility === 'facility1' ? 'MSC' : 'HSC'));
+                    formData.append('receive_date', receiveDate);
+                    formData.append('return_date', returnDate);
+                    formData.append('purpose', purposeOfUse);
+                    formData.append('notes', purposeOfUse); // Use purpose as notes for now
+                    formData.append('manager', managerName);
+                    formData.append('status', 'pending');
+                    
+                    // Add shopping cart items
+                    const items = Object.entries(shoppingCart).map(([assetId, item]) => ({
+                        item_key: assetId,
+                        quantity: item.quantity,
+                        notes: item.notes || '',
+                        storage_item_key: item.storage_item_key || null
+                    }));
+                    
+                    formData.append('items_json', JSON.stringify(items));
+
+                    try {
+                        // Create form using RegFormService
+                        const result = await new Promise((resolve, reject) => {
+                            RegFormService.save(formData, function(response) {
+                                if (response && response.success) {
+                                    resolve(response);
+                                } else {
+                                    reject(new Error(response?.msg || 'Unknown error'));
+                                }
+                            }).fail(function(error) {
+                                reject(error);
+                            });
+                        });
+
                         createdForms.push({
-                            id: `TF-${String(Date.now() + i).slice(-3)}`,
-                            manager: `Manager ${String.fromCharCode(65 + i)}`
+                            id: result.form_key || `TF-${Date.now()}-${i}`,
+                            manager: managerName
+                        });
+
+                        // Update progress
+                        progress = ((i + 1) / totalForms) * 100;
+                        progressBarElement.style.width = progress + '%';
+
+                    } catch (error) {
+                        console.error('Error creating form:', error);
+                        showNotification(`Lỗi tạo phiếu cho ${managerName}: ${error.message}`, 'danger');
+                        
+                        // Continue with next form but record the error
+                        createdForms.push({
+                            id: `ERROR-${i}`,
+                            manager: managerName,
+                            error: error.message
                         });
                     }
-
-                    setTimeout(() => {
-                        progressBar.style.display = 'none';
-                        progressBarElement.style.width = '0%';
-                        showCompletionResults(createdForms);
-                        goToStep(6);
-                    }, 500);
                 }
-            }, 100);
+
+                // Complete the process
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    progressBarElement.style.width = '0%';
+                    showCompletionResults(createdForms);
+                    goToStep(6);
+                }, 500);
+
+            } catch (error) {
+                console.error('Error in form creation process:', error);
+                showNotification('Có lỗi trong quá trình tạo phiếu!', 'danger');
+                progressBar.style.display = 'none';
+                progressBarElement.style.width = '0%';
+            }
         }
 
         function showCompletionResults(createdForms) {
@@ -3056,6 +3143,20 @@
                     }
                 }
                 updateFormsSummary();
+            }
+            
+            // Handle purposeOfUse textarea changes
+            if (e.target.id === 'purposeOfUse') {
+                updateSelectedInfo();
+                updateFixedNavigationButtons();
+            }
+        });
+
+        // Add input event listener for real-time validation
+        document.addEventListener('input', function(e) {
+            if (e.target.id === 'purposeOfUse') {
+                updateSelectedInfo();
+                updateFixedNavigationButtons();
             }
         });
 
@@ -3661,7 +3762,7 @@
         }
 
         // API Integration functions
-        const API_BASE_URL = 'http://localhost:9000';
+        const API_BASE_URL = 'http://localhost:9000/crm/api/v1';
 
         async function apiRequest(endpoint, options = {}) {
             const url = `${API_BASE_URL}${endpoint}`;
