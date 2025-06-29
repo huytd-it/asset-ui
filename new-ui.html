@@ -1,0 +1,4215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý Phiếu Transaction Forms - Enhanced</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css" rel="stylesheet">
+    <!-- Tom Select CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap4.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --pink-color: #e91e63;
+        }
+
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 0 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        .step {
+            text-align: center;
+            position: relative;
+            flex: 1;
+        }
+        
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: -50%;
+            width: 100%;
+            height: 3px;
+            background: #e9ecef;
+            z-index: 1;
+            border-radius: 2px;
+        }
+        
+        .step.active:not(:last-child)::after,
+        .step.completed:not(:last-child)::after {
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+        }
+        
+        .step-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 2;
+            transition: all 0.4s ease;
+            font-size: 18px;
+        }
+        
+        .step.active .step-circle {
+            background: linear-gradient(135deg, var(--primary-color), #0056b3);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0,123,255,0.4);
+        }
+        
+        .step.completed .step-circle {
+            background: linear-gradient(135deg, var(--success-color), #1e7e34);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .step-text {
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        /* Enhanced Asset Selection */
+        .asset-selection-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .assets-main-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .asset-filters {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .view-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .assets-list {
+            padding: 0;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .asset-card {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .asset-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+        }
+
+        .asset-card.in-cart {
+            border-color: var(--success-color);
+            background: #f8fff9;
+        }
+
+        .asset-card-grid {
+            padding: 15px;
+        }
+
+        .asset-card-list {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .asset-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 15px;
+        }
+
+        .asset-image-small {
+            width: 50px;
+            height: 50px;
+        }
+
+        .asset-info {
+            flex-grow: 1;
+        }
+
+        .asset-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .asset-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .asset-badge {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .asset-availability {
+            font-weight: 600;
+            color: var(--success-color);
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .quantity-input-group {
+            display: flex;
+            align-items: center;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .quantity-btn {
+            background: #f8f9fa;
+            border: none;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .quantity-input {
+            border: none;
+            width: 50px;
+            height: 35px;
+            text-align: center;
+            font-weight: 600;
+            background: white;
+        }
+
+        .add-to-cart-btn {
+            background: linear-gradient(135deg, var(--primary-color), #0056b3);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+
+        /* Shopping Cart Panel */
+        .shopping-cart {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-header {
+            background: linear-gradient(135deg, var(--primary-color), #0056b3);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .cart-title {
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cart-count {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .cart-items {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0;
+            max-height: 400px;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f1f3f4;
+            transition: all 0.2s;
+        }
+
+        .cart-item:hover {
+            background: #f8f9fa;
+        }
+
+        .cart-item-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            margin-right: 12px;
+        }
+
+        .cart-item-info {
+            flex-grow: 1;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .cart-item-meta {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .cart-item-quantity {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-right: 10px;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: #ffe6e6;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .cart-empty i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .cart-summary {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .cart-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .proceed-btn {
+            background: linear-gradient(135deg, var(--success-color), #1e7e34);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .proceed-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+        }
+
+        .proceed-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .clear-btn {
+            background: white;
+            border: 2px solid #dee2e6;
+            padding: 10px;
+            border-radius: 8px;
+            color: #6c757d;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        /* Navigation buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-btn-prev {
+            background: #6c757d;
+            color: white;
+        }
+
+        .nav-btn-prev:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .nav-btn-next {
+            background: linear-gradient(135deg, var(--primary-color), #0056b3);
+            color: white;
+        }
+
+        .nav-btn-next:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+
+        .nav-btn:disabled {
+            background: #dee2e6;
+            color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .step-circle {
+            cursor: pointer;
+        }
+
+        .step-circle:hover {
+            transform: scale(1.05);
+        }
+
+        /* Fixed bottom navigation for form creation */
+        .nav-buttons-fixed {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .nav-buttons-fixed .nav-buttons {
+            margin: 0;
+            border-radius: 0;
+            box-shadow: none;
+            justify-content: space-between;
+            padding: 15px 20px;
+        }
+
+        .nav-btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn-cancel {
+            background: #dc3545;
+            color: white;
+            border: 2px solid #dc3545;
+        }
+
+        .nav-btn-cancel:hover {
+            background: #c82333;
+            border-color: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220,53,69,0.3);
+        }
+
+        /* Add bottom padding to body when nav is fixed */
+        body.nav-fixed {
+            padding-bottom: 80px;
+        }
+
+        /* Hide regular nav buttons when fixed nav is active */
+        .nav-buttons.hidden {
+            display: none;
+        }
+
+        /* Selectable form cards in formsToCreate */
+        #formsToCreate .enhanced-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #dee2e6;
+        }
+
+        #formsToCreate .enhanced-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+        }
+
+        #formsToCreate .enhanced-card.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #f8f9ff, #e6f3ff);
+        }
+
+        #formsToCreate .enhanced-card.selected .card-header-enhanced {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        }
+
+        .text-pink {
+            color: var(--pink-color) !important;
+        }
+
+        /* Modern Edit Modal Styling */
+        .edit-modal-modern {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .edit-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border: none;
+        }
+
+        .edit-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edit-form-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .edit-form-badge {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .edit-form-badge i {
+            font-size: 24px;
+            color: white;
+        }
+
+        .edit-form-title {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .edit-form-id {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .edit-modal-body {
+            padding: 0;
+            max-height: 70vh;
+            overflow: hidden;
+        }
+
+        .edit-content-wrapper {
+            display: flex;
+            height: 70vh;
+        }
+
+        .edit-left-panel {
+            width: 35%;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .edit-right-panel {
+            width: 65%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .edit-panel-header {
+            padding: 20px 25px 15px 25px;
+            border-bottom: 1px solid #e9ecef;
+            background: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .edit-left-panel .edit-panel-header {
+            background: #f8f9fa;
+        }
+
+        .edit-panel-header h5 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .edit-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .edit-modal-footer {
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 20px 30px;
+        }
+
+        .edit-footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edit-footer-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .edit-footer-actions .btn {
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .edit-footer-actions .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Edit Form Content Styling */
+        .edit-info-card {
+            background: white;
+            margin: 20px;
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+        }
+
+        .edit-info-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .edit-info-header h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .edit-info-body {
+            padding: 20px;
+        }
+
+        .edit-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .edit-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .edit-info-label {
+            font-weight: 500;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .edit-info-value {
+            font-weight: 600;
+            color: #495057;
+            text-align: right;
+        }
+
+        .edit-form-section {
+            background: white;
+            margin: 20px;
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+        }
+
+        .edit-section-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .edit-section-header h6 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .edit-section-body {
+            padding: 25px;
+        }
+
+        .edit-asset-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .edit-asset-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .edit-asset-item:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateX(5px);
+        }
+
+        .edit-asset-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+
+        .edit-asset-details {
+            flex: 1;
+        }
+
+        .edit-asset-name {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 4px;
+        }
+
+        .edit-asset-type {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .edit-asset-quantity {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .edit-quantity-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quantity-input-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .quantity-input {
+            width: 60px;
+            text-align: center;
+            border-radius: 6px;
+        }
+
+        .quantity-input-group .btn {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        .edit-asset-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            gap: 15px;
+        }
+
+        .edit-asset-item:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateX(5px);
+        }
+
+        .edit-asset-details {
+            flex: 1;
+        }
+
+        .edit-asset-notes {
+            margin-top: 4px;
+        }
+
+        .edit-asset-item.modified {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .edit-asset-item.modified .edit-asset-name::after {
+            content: ' (đã sửa đổi)';
+            font-size: 11px;
+            color: #856404;
+            font-weight: normal;
+        }
+
+        @media (max-width: 768px) {
+            .edit-content-wrapper {
+                flex-direction: column;
+            }
+            
+            .edit-left-panel,
+            .edit-right-panel {
+                width: 100%;
+            }
+            
+            .edit-left-panel {
+                height: 200px;
+            }
+            
+            .edit-right-panel {
+                height: calc(70vh - 200px);
+            }
+        }
+
+        #formsToCreate .enhanced-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--info-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            border-radius: 12px 12px 0 0;
+        }
+
+        #formsToCreate .enhanced-card:hover::before,
+        #formsToCreate .enhanced-card.selected::before {
+            transform: scaleX(1);
+        }
+
+        /* Tom Select Styling */
+        .ts-wrapper {
+            margin-bottom: 0;
+        }
+
+        .ts-wrapper.single .ts-control {
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            height: calc(1.5em + 0.75rem + 2px);
+        }
+
+        .ts-wrapper.focus .ts-control {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        /* DataTable Styling */
+        .dataTables_wrapper .dataTables_length select {
+            padding: 0.25rem 0.5rem;
+            margin: 0 0.5rem;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            margin-left: 0.5rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        /* Preview Modal Styling */
+        .form-preview-modal .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .preview-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .preview-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.25rem;
+        }
+
+        .preview-value {
+            color: #212529;
+            font-size: 1.1rem;
+        }
+
+        .asset-preview-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .asset-preview-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.375rem;
+            margin-right: 0.75rem;
+        }
+
+        /* Facility Cards */
+        .facility-card {
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .facility-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, var(--primary-color), var(--info-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .facility-card:hover::before,
+        .facility-card.selected::before {
+            transform: scaleX(1);
+        }
+
+        .facility-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+        }
+
+        .facility-card.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #f8f9ff, #e6f3ff);
+        }
+
+        /* Form Type Cards */
+        .form-type-card {
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            text-align: center;
+        }
+
+        .form-type-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,123,255,0.15);
+        }
+
+        .form-type-card.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #f8f9ff, #e6f3ff);
+        }
+
+        .form-type-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        /* Progress Bar */
+        .save-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .save-progress .progress {
+            height: 6px;
+            border-radius: 0;
+        }
+
+        .save-progress .progress-bar {
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+        }
+
+        /* Enhanced Cards */
+        .enhanced-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .enhanced-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .card-header-enhanced {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-bottom: 1px solid #dee2e6;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .asset-selection-container {
+                grid-template-columns: 1fr 350px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .asset-selection-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .shopping-cart {
+                position: relative;
+                top: 0;
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .assets-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            
+            .progress-steps {
+                padding: 15px 10px;
+            }
+            
+            .step-text {
+                font-size: 12px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Animation cho cart items */
+        @keyframes slideInCart {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .cart-item-new {
+            animation: slideInCart 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar cho lưu -->
+    <div class="save-progress" id="saveProgressBar">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-3">
+        <!-- Progress Steps -->
+        <div class="progress-steps hidden" id="progressSteps">
+            <div class="step active" data-step="2">
+                <div class="step-circle" onclick="goToStep(2)">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="step-text">Tạo phiếu mới</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-circle" onclick="goToStep(3)">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="step-text">Chọn cơ sở</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-circle" onclick="goToStep(4)">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="step-text">Chọn tài sản</div>
+            </div>
+            <div class="step" data-step="5">
+                <div class="step-circle" onclick="goToStep(5)">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="step-text">Phân loại phiếu</div>
+            </div>
+            <div class="step" data-step="6">
+                <div class="step-circle" onclick="goToStep(6)">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="step-text">Hoàn thành</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Danh sách phiếu -->
+        <div id="step1" class="step-content">
+            <div class="enhanced-card">
+                <div class="card-header-enhanced d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt mr-2 text-primary"></i>
+                        Quản lý Transaction Forms
+                    </h5>
+                    <button class="btn btn-primary" onclick="goToStep(2)">
+                        <i class="fas fa-plus mr-1"></i>
+                        Tạo phiếu đăng ký
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Bộ lọc và tìm kiếm -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" class="form-control" placeholder="Tìm kiếm phiếu..." id="searchInput">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control" id="statusFilter">
+                                <option>Tất cả trạng thái</option>
+                                <option>Chờ duyệt</option>
+                                <option>Đã duyệt</option>
+                                <option>Từ chối</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control" id="facilityFilter">
+                                <option>Tất cả cơ sở</option>
+                                <option>Cơ sở Hà Nội</option>
+                                <option>Cơ sở TP.HCM</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-primary btn-block" onclick="filterTransactionForms()">
+                                <i class="fas fa-filter mr-1"></i>Lọc
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bảng danh sách -->
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="transactionFormsTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Mã phiếu</th>
+                                    <th>Cơ sở</th>
+                                    <th>Loại phiếu</th>
+                                    <th>Người quản lý</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be loaded via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Step 2: Tạo phiếu mới -->
+        <div id="step2" class="step-content hidden">
+            <div class="enhanced-card">
+                <div class="card-header-enhanced">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus mr-2 text-primary"></i>
+                        Tạo phiếu đăng ký mới
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-clipboard-list fa-5x text-primary mb-4"></i>
+                    <h4 class="mb-3">Bắt đầu tạo phiếu đăng ký</h4>
+                    <p class="text-muted mb-4">Hệ thống sẽ hướng dẫn bạn từng bước để tạo phiếu đăng ký tài sản một cách dễ dàng và nhanh chóng</p>
+                    <button class="btn btn-primary btn-lg" onclick="goToStep(3)">
+                        <i class="fas fa-arrow-right mr-2"></i>
+                        Bắt đầu
+                    </button>
+                </div>
+            </div>
+            <!-- Navigation buttons for Step 2 -->
+            <div class="nav-buttons">
+                <button class="nav-btn nav-btn-prev" onclick="goToStep(1)">
+                    <i class="fas fa-arrow-left mr-2"></i>Trước
+                </button>
+                <button class="nav-btn nav-btn-next" onclick="goToStep(3)">
+                    Tiếp theo<i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Chọn cơ sở và loại phiếu -->
+        <div id="step3" class="step-content hidden">
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Chọn cơ sở -->
+                    <div class="enhanced-card mb-4">
+                        <div class="card-header-enhanced">
+                            <h5 class="mb-0">
+                                <i class="fas fa-building mr-2 text-primary"></i>
+                                Chọn cơ sở <span class="text-danger">*</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="facility-card" onclick="selectFacility(this, 'facility1')">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="facility-icon mr-3">
+                                                <i class="fas fa-building fa-3x text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Cơ sở Hà Nội</h6>
+                                                <small class="text-muted">Trụ sở chính</small>
+                                            </div>
+                                        </div>
+                                        <div class="facility-details">
+                                            <p class="mb-2"><i class="fas fa-map-marker-alt mr-2 text-danger"></i>123 Phố Huế, Hai Bà Trưng, Hà Nội</p>
+                                            <p class="mb-2"><i class="fas fa-phone mr-2 text-success"></i>024-3456-7890</p>
+                                            <p class="mb-0"><i class="fas fa-user-tie mr-2 text-info"></i>Nguyễn Văn An - Quản lý cơ sở</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="facility-card" onclick="selectFacility(this, 'facility2')">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="facility-icon mr-3">
+                                                <i class="fas fa-building fa-3x text-success"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Cơ sở TP.HCM</h6>
+                                                <small class="text-muted">Chi nhánh phía Nam</small>
+                                            </div>
+                                        </div>
+                                        <div class="facility-details">
+                                            <p class="mb-2"><i class="fas fa-map-marker-alt mr-2 text-danger"></i>456 Nguyễn Huệ, Quận 1, TP.HCM</p>
+                                            <p class="mb-2"><i class="fas fa-phone mr-2 text-success"></i>028-1234-5678</p>
+                                            <p class="mb-0"><i class="fas fa-user-tie mr-2 text-info"></i>Trần Thị Bình - Quản lý cơ sở</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chọn loại phiếu -->
+                    <div class="enhanced-card mb-4">
+                        <div class="card-header-enhanced">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-alt mr-2 text-primary"></i>
+                                Loại phiếu
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="mb-3 text-primary">Phiếu mượn thiết bị/vật tư</h6>
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'LAB_HSC')">
+                                        <i class="fas fa-flask form-type-icon text-info"></i>
+                                        <h6>Lab HSC</h6>
+                                        <small class="text-muted">Phiếu mượn thiết bị phòng thí nghiệm HSC</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'LAB_MSC')">
+                                        <i class="fas fa-flask form-type-icon text-info"></i>
+                                        <h6>Lab MSC</h6>
+                                        <small class="text-muted">Phiếu mượn thiết bị phòng thí nghiệm MSC</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'MAKER_HSC')">
+                                        <i class="fas fa-cogs form-type-icon text-warning"></i>
+                                        <h6>Makerlab HSC</h6>
+                                        <small class="text-muted">Phiếu mượn thiết bị phòng Makerlab HSC</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'MAKER_MSC')">
+                                        <i class="fas fa-cogs form-type-icon text-warning"></i>
+                                        <h6>Makerlab MSC</h6>
+                                        <small class="text-muted">Phiếu mượn thiết bị phòng Makerlab MSC</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'PHYSICS_HSC')">
+                                        <i class="fas fa-atom form-type-icon text-primary"></i>
+                                        <h6>Vật lý HSC</h6>
+                                        <small class="text-muted">Phiếu mượn thiết bị & phòng Vật lý HSC</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'NUTRITION_MSC')">
+                                        <i class="fas fa-apple-alt form-type-icon text-success"></i>
+                                        <h6>Dinh dưỡng MSC</h6>
+                                        <small class="text-muted">Phiếu mượn vật tư & phòng Dinh dưỡng MSC</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'ART_MSC')">
+                                        <i class="fas fa-palette form-type-icon text-pink"></i>
+                                        <h6>Mỹ thuật MSC</h6>
+                                        <small class="text-muted">Phiếu mượn vật tư Mỹ thuật MSC</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'ART_HSC')">
+                                        <i class="fas fa-palette form-type-icon text-pink"></i>
+                                        <h6>Mỹ thuật HSC</h6>
+                                        <small class="text-muted">Phiếu mượn vật tư Mỹ thuật HSC</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'MEDICAL_MSC')">
+                                        <i class="fas fa-heart form-type-icon text-danger"></i>
+                                        <h6>Y tế MSC</h6>
+                                        <small class="text-muted">Phiếu mượn vật tư Y tế MSC - Phòng A103</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'MEDICAL_HSC')">
+                                        <i class="fas fa-heart form-type-icon text-danger"></i>
+                                        <h6>Y tế HSC</h6>
+                                        <small class="text-muted">Phiếu mượn vật tư Y tế HSC - Phòng 127</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h6 class="mb-3 text-success">Phiếu cấp phát tài sản</h6>
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'ROOM_HSC')">
+                                        <i class="fas fa-door-open form-type-icon text-success"></i>
+                                        <h6>Phòng HSC</h6>
+                                        <small class="text-muted">Phiếu xin cấp Phòng của cơ sở vật chất HSC</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'ROOM_MSC')">
+                                        <i class="fas fa-door-open form-type-icon text-success"></i>
+                                        <h6>Phòng MSC</h6>
+                                        <small class="text-muted">Phiếu xin cấp Phòng cơ sở vật chất MSC</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'SUPPLY_HSC')">
+                                        <i class="fas fa-boxes form-type-icon text-success"></i>
+                                        <h6>Vật tư HSC</h6>
+                                        <small class="text-muted">Phiếu xin cấp vật tư thiết bị cơ sở vật chất HSC</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'SUPPLY_MSC')">
+                                        <i class="fas fa-boxes form-type-icon text-success"></i>
+                                        <h6>Vật tư MSC</h6>
+                                        <small class="text-muted">Phiếu cấp vật tư thiết bị của cơ sở vật chất MSC</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h6 class="mb-3 text-warning">Phiếu kiểm tra tồn kho</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'AUDIT_MSC')">
+                                        <i class="fas fa-clipboard-check form-type-icon text-warning"></i>
+                                        <h6>Kiểm kho MSC</h6>
+                                        <small class="text-muted">Phiếu kiểm kho Lab MSC</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-type-card" onclick="selectFormType(this, 'LAB_AUDIT_HSC')">
+                                        <i class="fas fa-clipboard-check form-type-icon text-warning"></i>
+                                        <h6>Kiểm kho HSC</h6>
+                                        <small class="text-muted">Phiếu kiểm kho Lab HSC</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin thời gian -->
+                    <div class="enhanced-card">
+                        <div class="card-header-enhanced">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar mr-2 text-primary"></i>
+                                Thông tin thời gian
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><i class="fas fa-calendar-plus mr-2 text-success"></i>Ngày nhận/cấp <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" id="receiveDate" onchange="updateReturnDate()">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label><i class="fas fa-calendar-minus mr-2 text-warning"></i>Ngày trả dự kiến</label>
+                                        <input type="date" class="form-control" id="returnDate" readonly>
+                                        <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Tự động tính +14 ngày từ ngày nhận</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="enhanced-card position-sticky" style="top: 20px;">
+                        <div class="card-header-enhanced">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info-circle mr-2 text-primary"></i>
+                                Thông tin đã chọn
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="selectedInfo">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-clipboard-list fa-3x mb-3 opacity-50"></i>
+                                    <p>Chưa có thông tin nào được chọn</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-block mt-3" onclick="goToStep(4)" id="nextBtn" disabled>
+                                <i class="fas fa-arrow-right mr-2"></i>
+                                Tiếp tục chọn tài sản
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Navigation buttons for Step 3 -->
+            <div class="nav-buttons">
+                <button class="nav-btn nav-btn-prev" onclick="goToStep(2)">
+                    <i class="fas fa-arrow-left mr-2"></i>Trước
+                </button>
+                <button class="nav-btn nav-btn-next" onclick="goToStep(4)" id="step3NextBtn" disabled>
+                    Tiếp theo<i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Chọn tài sản - Enhanced -->
+        <div id="step4" class="step-content hidden">
+            <div class="asset-selection-container">
+                <!-- Panel chính chọn tài sản -->
+                <div class="assets-main-panel">
+                    <!-- Bộ lọc -->
+                    <div class="asset-filters">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control" placeholder="Tìm kiếm tài sản..." id="assetSearch" oninput="filterAssets()">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-control" id="assetTypeFilter" onchange="filterAssets()">
+                                    <option value="">Tất cả loại</option>
+                                    <option value="Máy tính">Máy tính</option>
+                                    <option value="Thiết bị văn phòng">Thiết bị văn phòng</option>
+                                    <option value="Nội thất">Nội thất</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-control" id="storageFilter" onchange="filterAssets()">
+                                    <option value="">Tất cả kho</option>
+                                    <option value="Kho A">Kho A</option>
+                                    <option value="Kho B">Kho B</option>
+                                    <option value="Kho C">Kho C</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-outline-secondary btn-block" onclick="clearFilters()">
+                                    <i class="fas fa-times mr-1"></i>Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="view-controls">
+                        <div class="d-flex align-items-center">
+                            <span class="text-muted mr-2">Hiển thị:</span>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary active" onclick="toggleView('grid')" id="gridViewBtn">
+                                    <i class="fas fa-th"></i> Grid
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="toggleView('list')" id="listViewBtn">
+                                    <i class="fas fa-list"></i> List
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-muted">
+                            <span id="assetCount">0</span> tài sản có sẵn
+                        </div>
+                    </div>
+
+                    <!-- Danh sách tài sản -->
+                    <div id="assetsContainer" class="assets-grid">
+                        <!-- Assets sẽ được load động bằng JavaScript -->
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Asset pagination" class="p-3">
+                        <ul class="pagination justify-content-center mb-0" id="assetPagination">
+                            <!-- Pagination sẽ được tạo động -->
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Shopping Cart Panel -->
+                <div class="shopping-cart">
+                    <div class="cart-header">
+                        <h6 class="cart-title">
+                            <i class="fas fa-shopping-cart"></i>
+                            Giỏ hàng
+                        </h6>
+                        <div class="cart-count" id="cartCount">0</div>
+                    </div>
+                    
+                    <div class="cart-items" id="cartItems">
+                        <div class="cart-empty">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>Giỏ hàng trống</p>
+                            <small class="text-muted">Hãy chọn tài sản từ danh sách bên trái</small>
+                        </div>
+                    </div>
+                    
+                    <div class="cart-summary">
+                        <div class="cart-total">
+                            <span>Tổng số lượng:</span>
+                            <span id="totalQuantity">0</span>
+                        </div>
+                        <div class="cart-actions">
+                            <button class="btn proceed-btn" onclick="goToStep(5)" id="proceedBtn" disabled>
+                                <i class="fas fa-arrow-right mr-2"></i>
+                                Tiếp tục (<span id="totalItems">0</span> mục)
+                            </button>
+                            <button class="btn clear-btn" onclick="clearCart()">
+                                <i class="fas fa-trash mr-2"></i>
+                                Xóa tất cả
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Navigation buttons for Step 4 -->
+            <div class="nav-buttons">
+                <button class="nav-btn nav-btn-prev" onclick="goToStep(3)">
+                    <i class="fas fa-arrow-left mr-2"></i>Trước
+                </button>
+                <button class="nav-btn nav-btn-next" onclick="goToStep(5)" id="step4NextBtn" disabled>
+                    Tiếp theo<i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 5: Phân loại phiếu -->
+        <div id="step5" class="step-content hidden">
+            <div class="enhanced-card">
+                <div class="card-header-enhanced">
+                    <h5 class="mb-0">
+                        <i class="fas fa-layer-group mr-2 text-primary"></i>
+                        Phân loại và tạo phiếu
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Hệ thống đã phân loại tự động các tài sản theo manager và storage. Bạn có thể chọn những phiếu muốn tạo.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div id="formsToCreate">
+                                <!-- Forms sẽ được tạo động -->
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="enhanced-card">
+                                <div class="card-header-enhanced">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-chart-pie mr-2 text-primary"></i>
+                                        Tổng quan
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Tổng số phiếu:</span>
+                                            <strong id="totalForms">0</strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Phiếu được chọn:</span>
+                                            <strong id="selectedFormsCount">0</strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Tổng tài sản:</span>
+                                            <strong id="totalAssetsInForms">0</strong>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="mb-3">
+                                        <h6>Thao tác:</h6>
+                                        <button class="btn btn-outline-primary btn-sm btn-block mb-2" onclick="selectAllForms()">
+                                            <i class="fas fa-check-square mr-1"></i>Chọn tất cả
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm btn-block" onclick="unselectAllForms()">
+                                            <i class="fas fa-square mr-1"></i>Bỏ chọn tất cả
+                                        </button>
+                                    </div>
+                                    <button class="btn btn-success btn-block btn-lg" onclick="createForms()" id="createFormsBtn" disabled>
+                                        <i class="fas fa-save mr-2"></i>
+                                        Tạo phiếu
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Navigation buttons for Step 5 -->
+            <div class="nav-buttons">
+                <button class="nav-btn nav-btn-prev" onclick="goToStep(4)">
+                    <i class="fas fa-arrow-left mr-2"></i>Trước
+                </button>
+                <button class="nav-btn nav-btn-next" onclick="createForms()" id="step5NextBtn" disabled>
+                    Tạo phiếu<i class="fas fa-check ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 6: Hoàn thành -->
+        <div id="step6" class="step-content hidden">
+            <div class="enhanced-card">
+                <div class="card-header-enhanced">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle mr-2 text-success"></i>
+                        Hoàn thành
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-5x text-success mb-4"></i>
+                    <h4>Tạo phiếu thành công!</h4>
+                    <p class="text-muted mb-4">Các phiếu đăng ký đã được tạo và gửi đến người quản lý tương ứng.</p>
+                    
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="alert alert-success">
+                                <h6><i class="fas fa-info-circle mr-2"></i>Thông tin phiếu đã tạo:</h6>
+                                <div id="createdFormsList">
+                                    <!-- Danh sách phiếu đã tạo sẽ được hiển thị ở đây -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button class="btn btn-primary mr-3" onclick="goToStep(1)">
+                            <i class="fas fa-list mr-2"></i>
+                            Về danh sách phiếu
+                        </button>
+                        <button class="btn btn-success" onclick="goToStep(2)">
+                            <i class="fas fa-plus mr-2"></i>
+                            Tạo phiếu mới
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Navigation buttons for Step 6 -->
+            <div class="nav-buttons">
+                <button class="nav-btn nav-btn-prev" onclick="goToStep(5)">
+                    <i class="fas fa-arrow-left mr-2"></i>Trước
+                </button>
+                <button class="nav-btn nav-btn-next" onclick="goToStep(1)">
+                    Hoàn thành<i class="fas fa-home ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Preview Modal -->
+    <div class="modal fade form-preview-modal" id="formPreviewModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-eye mr-2 text-primary"></i>
+                        Xem trước phiếu đăng ký
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="formPreviewContent">
+                    <!-- Preview content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Đóng
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="editFormFromPreview()">
+                        <i class="fas fa-edit mr-2"></i>Chỉnh sửa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modern Edit Form Modal -->
+    <div class="modal fade" id="editFormModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xxl" role="document" style="max-width: 95vw;">
+            <div class="modal-content edit-modal-modern">
+                <div class="edit-modal-header">
+                    <div class="edit-header-content">
+                        <div class="edit-form-info">
+                            <div class="edit-form-badge">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <div class="edit-form-details">
+                                <h4 class="edit-form-title">Chỉnh sửa phiếu</h4>
+                                <p class="edit-form-id">Mã phiếu: <span id="editFormId"></span></p>
+                            </div>
+                        </div>
+                        <div class="edit-header-actions">
+                            <button type="button" class="btn btn-ghost" data-dismiss="modal">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="edit-modal-body">
+                    <div class="edit-content-wrapper">
+                        <!-- Left Panel - Form Details -->
+                        <div class="edit-left-panel">
+                            <div class="edit-panel-header">
+                                <h5><i class="fas fa-info-circle mr-2"></i>Thông tin phiếu</h5>
+                            </div>
+                            <div class="edit-panel-content">
+                                <div id="editFormBasicInfo">
+                                    <!-- Basic form info will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Panel - Edit Form -->
+                        <div class="edit-right-panel">
+                            <div class="edit-panel-header">
+                                <h5><i class="fas fa-edit mr-2"></i>Chỉnh sửa thông tin</h5>
+                            </div>
+                            <div class="edit-panel-content">
+                                <div id="editFormContent">
+                                    <!-- Edit form content will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="edit-modal-footer">
+                    <div class="edit-footer-content">
+                        <div class="edit-footer-actions">
+                            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+                                <i class="fas fa-times mr-2"></i>Hủy bỏ
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="saveFormChanges()">
+                                <i class="fas fa-save mr-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fixed Bottom Navigation for Form Creation -->
+    <div class="nav-buttons-fixed hidden" id="fixedNavigation">
+        <div class="nav-buttons">
+            <div class="nav-btn-group">
+                <button class="nav-btn nav-btn-cancel" onclick="cancelFormCreation()">
+                    <i class="fas fa-times mr-2"></i>Hủy
+                </button>
+                <button class="nav-btn nav-btn-prev" id="fixedPrevBtn" onclick="goToPrevStep()">
+                    <i class="fas fa-arrow-left mr-2"></i>Trước
+                </button>
+            </div>
+            <div class="nav-btn-group">
+                <button class="nav-btn nav-btn-next" id="fixedNextBtn" onclick="goToNextStep()">
+                    Tiếp theo<i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
+    <!-- Tom Select JS -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    
+    <script>
+        // State management
+        let currentStep = 1;
+        let selectedFacility = null;
+        let selectedFormType = null;
+        let selectedDate = null;
+        let shoppingCart = {};
+        let currentViewMode = 'grid';
+        let currentPage = 1;
+        let itemsPerPage = 6;
+        let filteredAssets = [];
+        let isFormCreationMode = false;
+        
+        // Edit form state
+        let editFormData = null;
+
+        // Mock data - Tài sản mẫu
+        const mockAssets = [
+            {
+                id: 'asset1',
+                name: 'Laptop Dell XPS 13',
+                nameEn: 'Dell XPS 13 Laptop',
+                image: 'https://placehold.co/80x80/e3f2fd/1976d2?text=Laptop',
+                type: 'Máy tính',
+                available: 5,
+                storage: 'Kho A',
+                manager: 'Manager A',
+                managerName: 'Nguyễn Văn An',
+                managerId: 'MGR001'
+            },
+            {
+                id: 'asset2',
+                name: 'Màn hình Dell 24"',
+                nameEn: 'Dell 24" Monitor',
+                image: 'https://placehold.co/80x80/e8f5e8/388e3c?text=Monitor',
+                type: 'Thiết bị văn phòng',
+                available: 8,
+                storage: 'Kho B',
+                manager: 'Manager B',
+                managerName: 'Trần Thị Bình',
+                managerId: 'MGR002'
+            },
+            {
+                id: 'asset3',
+                name: 'Ghế văn phòng',
+                nameEn: 'Office Chair',
+                image: 'https://placehold.co/80x80/fff3e0/f57c00?text=Chair',
+                type: 'Nội thất',
+                available: 12,
+                storage: 'Kho A',
+                manager: 'Manager A',
+                managerName: 'Nguyễn Văn An',
+                managerId: 'MGR001'
+            },
+            {
+                id: 'asset4',
+                name: 'Máy in HP LaserJet',
+                nameEn: 'HP LaserJet Printer',
+                image: 'https://placehold.co/80x80/fce4ec/c2185b?text=Printer',
+                type: 'Thiết bị văn phòng',
+                available: 3,
+                storage: 'Kho C',
+                manager: 'Manager C',
+                managerName: 'Lê Văn Cường',
+                managerId: 'MGR003'
+            },
+            {
+                id: 'asset5',
+                name: 'Bàn làm việc',
+                nameEn: 'Work Desk',
+                image: 'https://placehold.co/80x80/f3e5f5/7b1fa2?text=Desk',
+                type: 'Nội thất',
+                available: 7,
+                storage: 'Kho B',
+                manager: 'Manager B',
+                managerName: 'Trần Thị Bình',
+                managerId: 'MGR002'
+            },
+            {
+                id: 'asset6',
+                name: 'Macbook Pro 16"',
+                nameEn: 'Macbook Pro 16"',
+                image: 'https://placehold.co/80x80/e0f2f1/00695c?text=MacBook',
+                type: 'Máy tính',
+                available: 2,
+                storage: 'Kho A',
+                manager: 'Manager A',
+                managerName: 'Nguyễn Văn An',
+                managerId: 'MGR001'
+            }
+        ];
+
+        // Mock data for AJAX response
+        const mockTransactionForms = [
+            {
+                id: 'TF-001',
+                facility: 'Cơ sở Hà Nội',
+                type: 'Mượn tài sản',
+                manager: 'Nguyễn Văn A',
+                created_date: '15/06/2025',
+                status: 'Chờ duyệt',
+                status_class: 'warning',
+                assets: [
+                    { name: 'Laptop Dell XPS 13', quantity: 1, type: 'Máy tính' },
+                    { name: 'Màn hình Dell 24"', quantity: 1, type: 'Thiết bị văn phòng' }
+                ],
+                receive_date: '16/06/2025',
+                return_date: '30/06/2025',
+                notes: 'Cần sử dụng cho dự án quan trọng'
+            },
+            {
+                id: 'TF-002',
+                facility: 'Cơ sở TP.HCM',
+                type: 'Trả tài sản',
+                manager: 'Trần Thị B',
+                created_date: '14/06/2025',
+                status: 'Đã duyệt',
+                status_class: 'success',
+                assets: [
+                    { name: 'Ghế văn phòng', quantity: 2, type: 'Nội thất' }
+                ],
+                receive_date: '10/06/2025',
+                return_date: '15/06/2025',
+                notes: 'Trả đúng hạn'
+            },
+            {
+                id: 'TF-003',
+                facility: 'Cơ sở Hà Nội',
+                type: 'Chuyển tài sản',
+                manager: 'Lê Văn C',
+                created_date: '13/06/2025',
+                status: 'Từ chối',
+                status_class: 'danger',
+                assets: [
+                    { name: 'Máy in HP LaserJet', quantity: 1, type: 'Thiết bị văn phòng' }
+                ],
+                receive_date: '14/06/2025',
+                return_date: '28/06/2025',
+                notes: 'Không đủ điều kiện chuyển'
+            }
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDateInputs();
+            loadAssets();
+            updateCartDisplay();
+            initializeDataTable();
+            initializeTomSelect();
+            
+            // Initialize API integration
+            initializePage();
+        });
+
+        function initializeDateInputs() {
+            const today = new Date();
+            document.getElementById('receiveDate').valueAsDate = today;
+            updateReturnDate();
+        }
+
+        // Navigation functions
+        function goToStep(step) {
+            // Show progress steps when going to step 2 or higher
+            if (step >= 2) {
+                document.getElementById('progressSteps').classList.remove('hidden');
+                isFormCreationMode = true;
+            } else {
+                document.getElementById('progressSteps').classList.add('hidden');
+                isFormCreationMode = false;
+            }
+            
+            // Validate step transitions
+            if (step > currentStep + 1) {
+                if (step === 4 && !selectedFacility) {
+                    alert('Vui lòng chọn cơ sở trước khi tiếp tục!');
+                    return;
+                }
+            }
+
+            // Hide all steps
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`step${i}`).classList.add('hidden');
+            }
+            
+            // Show current step
+            document.getElementById(`step${step}`).classList.remove('hidden');
+            
+            // Update progress
+            updateProgress(step);
+            currentStep = step;
+            
+            // Update navigation display
+            updateNavigationDisplay();
+
+            // Special handling for specific steps
+            if (step === 4) {
+                loadAssets();
+            } else if (step === 5) {
+                generateFormClassification();
+            }
+        }
+        
+        function updateNavigationDisplay() {
+            const fixedNav = document.getElementById('fixedNavigation');
+            const regularNavs = document.querySelectorAll('.nav-buttons:not(#fixedNavigation .nav-buttons)');
+            const body = document.body;
+            
+            if (isFormCreationMode && currentStep >= 2 && currentStep <= 6) {
+                // Show fixed navigation
+                fixedNav.classList.remove('hidden');
+                body.classList.add('nav-fixed');
+                
+                // Hide regular navigation buttons
+                regularNavs.forEach(nav => nav.classList.add('hidden'));
+                
+                // Update fixed navigation buttons
+                updateFixedNavigationButtons();
+            } else {
+                // Hide fixed navigation
+                fixedNav.classList.add('hidden');
+                body.classList.remove('nav-fixed');
+                
+                // Show regular navigation buttons
+                regularNavs.forEach(nav => nav.classList.remove('hidden'));
+            }
+        }
+        
+        function updateFixedNavigationButtons() {
+            const prevBtn = document.getElementById('fixedPrevBtn');
+            const nextBtn = document.getElementById('fixedNextBtn');
+            
+            // Update prev button
+            prevBtn.disabled = currentStep <= 2;
+            
+            // Update next button based on current step
+            switch(currentStep) {
+                case 2:
+                    nextBtn.disabled = false;
+                    nextBtn.innerHTML = 'Tiếp theo<i class="fas fa-arrow-right ml-2"></i>';
+                    break;
+                case 3:
+                    nextBtn.disabled = !selectedFacility;
+                    nextBtn.innerHTML = 'Tiếp theo<i class="fas fa-arrow-right ml-2"></i>';
+                    break;
+                case 4:
+                    nextBtn.disabled = Object.keys(shoppingCart).length === 0;
+                    nextBtn.innerHTML = 'Tiếp theo<i class="fas fa-arrow-right ml-2"></i>';
+                    break;
+                case 5:
+                    const checkedForms = document.querySelectorAll('#formsToCreate input[type="checkbox"]:checked');
+                    nextBtn.disabled = checkedForms.length === 0;
+                    nextBtn.innerHTML = 'Tạo phiếu<i class="fas fa-check ml-2"></i>';
+                    break;
+                case 6:
+                    nextBtn.disabled = false;
+                    nextBtn.innerHTML = 'Hoàn thành<i class="fas fa-home ml-2"></i>';
+                    break;
+            }
+        }
+        
+        function goToPrevStep() {
+            if (currentStep > 2) {
+                goToStep(currentStep - 1);
+            }
+        }
+        
+        function goToNextStep() {
+            switch(currentStep) {
+                case 2:
+                    goToStep(3);
+                    break;
+                case 3:
+                    if (selectedFacility) {
+                        goToStep(4);
+                    }
+                    break;
+                case 4:
+                    if (Object.keys(shoppingCart).length > 0) {
+                        goToStep(5);
+                    }
+                    break;
+                case 5:
+                    createForms();
+                    break;
+                case 6:
+                    goToStep(1);
+                    break;
+            }
+        }
+        
+        function cancelFormCreation() {
+            if (confirm('Bạn có chắc muốn hủy quá trình tạo phiếu? Tất cả thông tin đã nhập sẽ bị mất.')) {
+                resetFormState();
+                goToStep(1);
+            }
+        }
+        
+        function resetFormState() {
+            // Reset all form data
+            selectedFacility = null;
+            selectedFormType = null;
+            selectedDate = null;
+            shoppingCart = {};
+            
+            // Reset UI elements
+            document.querySelectorAll('.facility-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.form-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            document.getElementById('receiveDate').value = '';
+            document.getElementById('returnDate').value = '';
+            
+            // Reset asset selection
+            document.querySelectorAll('.quantity-input').forEach(input => {
+                input.value = 0;
+            });
+            
+            document.querySelectorAll('.asset-card').forEach(card => {
+                card.classList.remove('in-cart');
+            });
+            
+            // Re-initialize date inputs
+            initializeDateInputs();
+            
+            // Update displays
+            updateSelectedInfo();
+            updateCartDisplay();
+        }
+
+        function updateProgress(step) {
+            const steps = document.querySelectorAll('.step');
+            steps.forEach((stepEl, index) => {
+                const stepNum = index + 1;
+                stepEl.classList.remove('active', 'completed');
+                
+                if (stepNum < step) {
+                    stepEl.classList.add('completed');
+                } else if (stepNum === step) {
+                    stepEl.classList.add('active');
+                }
+            });
+        }
+
+        // Facility selection
+        function selectFacility(element, facilityId) {
+            document.querySelectorAll('.facility-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            element.classList.add('selected');
+            selectedFacility = facilityId;
+            updateSelectedInfo();
+        }
+
+        // Form type selection
+        function selectFormType(element, typeId) {
+            document.querySelectorAll('.form-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            element.classList.add('selected');
+            selectedFormType = typeId;
+            updateSelectedInfo();
+        }
+
+        // Date handling
+        function updateReturnDate() {
+            const receiveDate = document.getElementById('receiveDate').value;
+            if (receiveDate) {
+                const returnDate = new Date(receiveDate);
+                returnDate.setDate(returnDate.getDate() + 14);
+                document.getElementById('returnDate').value = returnDate.toISOString().split('T')[0];
+                selectedDate = receiveDate;
+                updateSelectedInfo();
+            }
+        }
+
+        function updateSelectedInfo() {
+            const infoDiv = document.getElementById('selectedInfo');
+            const nextBtn = document.getElementById('nextBtn');
+            const step3NextBtn = document.getElementById('step3NextBtn');
+            
+            let html = '';
+            let canProceed = false;
+            
+            if (selectedFacility) {
+                const facilityName = selectedFacility === 'facility1' ? 'Cơ sở Hà Nội' : 'Cơ sở TP.HCM';
+                html += `<div class="mb-3 p-3 bg-light rounded">
+                    <i class="fas fa-building mr-2 text-primary"></i>
+                    <strong>Cơ sở:</strong> ${facilityName}
+                </div>`;
+                canProceed = true;
+            }
+            
+            if (selectedFormType) {
+                const typeNames = {
+                    'borrow': 'Phiếu mượn',
+                    'return': 'Phiếu trả', 
+                    'transfer': 'Phiếu chuyển'
+                };
+                html += `<div class="mb-3 p-3 bg-light rounded">
+                    <i class="fas fa-file-alt mr-2 text-info"></i>
+                    <strong>Loại phiếu:</strong> ${typeNames[selectedFormType]}
+                </div>`;
+            }
+            
+            if (selectedDate) {
+                const receiveDate = new Date(selectedDate).toLocaleDateString('vi-VN');
+                const returnDateStr = document.getElementById('returnDate').value;
+                const returnDate = new Date(returnDateStr).toLocaleDateString('vi-VN');
+                html += `<div class="mb-3 p-3 bg-light rounded">
+                    <div class="mb-2">
+                        <i class="fas fa-calendar mr-2 text-success"></i>
+                        <strong>Ngày nhận:</strong> ${receiveDate}
+                    </div>
+                    <div>
+                        <i class="fas fa-calendar-alt mr-2 text-warning"></i>
+                        <strong>Ngày trả:</strong> ${returnDate}
+                    </div>
+                </div>`;
+            }
+            
+            if (html === '') {
+                html = `<div class="text-center text-muted">
+                    <i class="fas fa-clipboard-list fa-3x mb-3 opacity-50"></i>
+                    <p>Chưa có thông tin nào được chọn</p>
+                </div>`;
+            }
+            
+            infoDiv.innerHTML = html;
+            if (nextBtn) nextBtn.disabled = !canProceed;
+            if (step3NextBtn) step3NextBtn.disabled = !canProceed;
+            
+            // Update fixed navigation if in form creation mode
+            if (isFormCreationMode) {
+                updateFixedNavigationButtons();
+            }
+        }
+
+        // Asset management
+        function loadAssets() {
+            filteredAssets = [...mockAssets];
+            renderAssets();
+            updateAssetCount();
+        }
+
+        function renderAssets() {
+            const container = document.getElementById('assetsContainer');
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const assetsToShow = filteredAssets.slice(startIndex, endIndex);
+
+            if (currentViewMode === 'grid') {
+                container.className = 'assets-grid';
+                container.innerHTML = assetsToShow.map(asset => createAssetCardGrid(asset)).join('');
+            } else {
+                container.className = 'assets-list';
+                container.innerHTML = assetsToShow.map(asset => createAssetCardList(asset)).join('');
+            }
+
+            renderPagination();
+        }
+
+        function createAssetCardGrid(asset) {
+            const isInCart = shoppingCart[asset.id];
+            const cartQuantity = isInCart ? isInCart.quantity : 0;
+            
+            return `
+                <div class="asset-card ${isInCart ? 'in-cart' : ''}" data-asset-id="${asset.id}">
+                    <div class="asset-card-grid">
+                        <img src="${asset.image}" class="asset-image" alt="${asset.name}">
+                        <div class="asset-info">
+                            <div class="asset-name">${asset.name}</div>
+                            <div class="text-muted small mb-2">${asset.nameEn}</div>
+                            <div class="asset-meta">
+                                <span class="badge asset-badge badge-info">${asset.type}</span>
+                                <span class="asset-availability">Còn: ${asset.available}</span>
+                            </div>
+                            <div class="text-muted small">
+                                <i class="fas fa-warehouse mr-1"></i>${asset.storage}
+                                <i class="fas fa-user ml-2 mr-1"></i>${asset.manager}
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <div class="quantity-input-group">
+                                <button class="quantity-btn" onclick="changeQuantity('${asset.id}', -1)">-</button>
+                                <input type="number" class="quantity-input" value="${cartQuantity}" min="0" max="${asset.available}" 
+                                       onchange="updateQuantity('${asset.id}', this.value)" readonly>
+                                <button class="quantity-btn" onclick="changeQuantity('${asset.id}', 1)">+</button>
+                            </div>
+                            <button class="add-to-cart-btn" onclick="addToCart('${asset.id}')">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createAssetCardList(asset) {
+            const isInCart = shoppingCart[asset.id];
+            const cartQuantity = isInCart ? isInCart.quantity : 0;
+            
+            return `
+                <div class="asset-card ${isInCart ? 'in-cart' : ''}" data-asset-id="${asset.id}">
+                    <div class="asset-card-list">
+                        <img src="${asset.image}" class="asset-image asset-image-small" alt="${asset.name}">
+                        <div class="asset-info">
+                            <div class="asset-name">${asset.name}</div>
+                            <div class="text-muted small">${asset.nameEn}</div>
+                            <div class="d-flex align-items-center mt-1">
+                                <span class="badge asset-badge badge-info mr-2">${asset.type}</span>
+                                <span class="text-muted small mr-3">
+                                    <i class="fas fa-warehouse mr-1"></i>${asset.storage}
+                                </span>
+                                <span class="asset-availability">Còn: ${asset.available}</span>
+                            </div>
+                        </div>
+                        <div class="quantity-controls">
+                            <div class="quantity-input-group">
+                                <button class="quantity-btn" onclick="changeQuantity('${asset.id}', -1)">-</button>
+                                <input type="number" class="quantity-input" value="${cartQuantity}" min="0" max="${asset.available}" 
+                                       onchange="updateQuantity('${asset.id}', this.value)" readonly>
+                                <button class="quantity-btn" onclick="changeQuantity('${asset.id}', 1)">+</button>
+                            </div>
+                            <button class="add-to-cart-btn" onclick="addToCart('${asset.id}')">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleView(viewType) {
+            currentViewMode = viewType;
+            
+            // Update buttons
+            document.getElementById('gridViewBtn').classList.toggle('active', viewType === 'grid');
+            document.getElementById('listViewBtn').classList.toggle('active', viewType === 'list');
+            
+            renderAssets();
+        }
+
+        // Shopping cart functions
+        function changeQuantity(assetId, change) {
+            const asset = mockAssets.find(a => a.id === assetId);
+            if (!asset) return;
+
+            let currentQuantity = shoppingCart[assetId] ? shoppingCart[assetId].quantity : 0;
+            let newQuantity = currentQuantity + change;
+            
+            if (newQuantity < 0) newQuantity = 0;
+            if (newQuantity > asset.available) newQuantity = asset.available;
+            
+            updateQuantity(assetId, newQuantity);
+        }
+
+        function updateQuantity(assetId, quantity) {
+            const asset = mockAssets.find(a => a.id === assetId);
+            if (!asset) return;
+
+            quantity = parseInt(quantity) || 0;
+            if (quantity < 0) quantity = 0;
+            if (quantity > asset.available) quantity = asset.available;
+
+            if (quantity > 0) {
+                shoppingCart[assetId] = {
+                    ...asset,
+                    quantity: quantity
+                };
+            } else {
+                delete shoppingCart[assetId];
+            }
+
+            // Update input display
+            const assetCard = document.querySelector(`[data-asset-id="${assetId}"]`);
+            if (assetCard) {
+                const quantityInput = assetCard.querySelector('.quantity-input');
+                if (quantityInput) {
+                    quantityInput.value = quantity;
+                }
+                assetCard.classList.toggle('in-cart', quantity > 0);
+            }
+
+            updateCartDisplay();
+        }
+
+        function addToCart(assetId) {
+            const assetCard = document.querySelector(`[data-asset-id="${assetId}"]`);
+            const quantityInput = assetCard.querySelector('.quantity-input');
+            const quantity = parseInt(quantityInput.value) || 0;
+            
+            if (quantity > 0) {
+                // Quantity is already set, add animation
+                assetCard.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    assetCard.style.transform = '';
+                }, 150);
+            } else {
+                // Set quantity to 1 if not set
+                updateQuantity(assetId, 1);
+            }
+        }
+
+        function updateCartDisplay() {
+            const cartItems = Object.values(shoppingCart);
+            const cartCount = cartItems.length;
+            const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+            // Update cart header
+            document.getElementById('cartCount').textContent = cartCount;
+            document.getElementById('totalQuantity').textContent = totalQuantity;
+            document.getElementById('totalItems').textContent = totalQuantity;
+
+            // Update proceed button
+            const proceedBtn = document.getElementById('proceedBtn');
+            const step4NextBtn = document.getElementById('step4NextBtn');
+            proceedBtn.disabled = cartCount === 0;
+            if (step4NextBtn) step4NextBtn.disabled = cartCount === 0;
+            
+            // Update fixed navigation if in form creation mode
+            if (isFormCreationMode) {
+                updateFixedNavigationButtons();
+            }
+
+            // Update cart items display
+            const cartItemsContainer = document.getElementById('cartItems');
+            
+            if (cartCount === 0) {
+                cartItemsContainer.innerHTML = `
+                    <div class="cart-empty">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>Giỏ hàng trống</p>
+                        <small class="text-muted">Hãy chọn tài sản từ danh sách bên trái</small>
+                    </div>
+                `;
+            } else {
+                const cartItemsHtml = cartItems.map(item => `
+                    <div class="cart-item cart-item-new">
+                        <img src="${item.image}" class="cart-item-image" alt="${item.name}">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-meta">${item.type} - ${item.storage}</div>
+                        </div>
+                        <div class="cart-item-quantity">x${item.quantity}</div>
+                        <button class="remove-btn" onclick="removeFromCart('${item.id}')" title="Xóa khỏi giỏ hàng">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `).join('');
+                
+                cartItemsContainer.innerHTML = cartItemsHtml;
+
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    document.querySelectorAll('.cart-item-new').forEach(item => {
+                        item.classList.remove('cart-item-new');
+                    });
+                }, 300);
+            }
+        }
+
+        function removeFromCart(assetId) {
+            delete shoppingCart[assetId];
+            
+            // Update asset card display
+            const assetCard = document.querySelector(`[data-asset-id="${assetId}"]`);
+            if (assetCard) {
+                const quantityInput = assetCard.querySelector('.quantity-input');
+                if (quantityInput) {
+                    quantityInput.value = 0;
+                }
+                assetCard.classList.remove('in-cart');
+            }
+            
+            updateCartDisplay();
+        }
+
+        function clearCart() {
+            if (Object.keys(shoppingCart).length === 0) return;
+            
+            if (confirm('Bạn có chắc muốn xóa tất cả tài sản khỏi giỏ hàng?')) {
+                shoppingCart = {};
+                
+                // Reset all quantity inputs
+                document.querySelectorAll('.quantity-input').forEach(input => {
+                    input.value = 0;
+                });
+                
+                // Remove in-cart class from all cards
+                document.querySelectorAll('.asset-card').forEach(card => {
+                    card.classList.remove('in-cart');
+                });
+                
+                updateCartDisplay();
+            }
+        }
+
+        // Filter and search functions
+        function filterAssets() {
+            const searchTerm = document.getElementById('assetSearch').value.toLowerCase();
+            const typeFilter = document.getElementById('assetTypeFilter').value;
+            const storageFilter = document.getElementById('storageFilter').value;
+
+            filteredAssets = mockAssets.filter(asset => {
+                const matchesSearch = asset.name.toLowerCase().includes(searchTerm) || 
+                                    asset.nameEn.toLowerCase().includes(searchTerm);
+                const matchesType = !typeFilter || asset.type === typeFilter;
+                const matchesStorage = !storageFilter || asset.storage === storageFilter;
+
+                return matchesSearch && matchesType && matchesStorage;
+            });
+
+            currentPage = 1;
+            renderAssets();
+            updateAssetCount();
+        }
+
+        function clearFilters() {
+            document.getElementById('assetSearch').value = '';
+            document.getElementById('assetTypeFilter').value = '';
+            document.getElementById('storageFilter').value = '';
+            filterAssets();
+        }
+
+        function updateAssetCount() {
+            document.getElementById('assetCount').textContent = filteredAssets.length;
+        }
+
+        // Pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
+            const paginationContainer = document.getElementById('assetPagination');
+
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+
+            let paginationHtml = `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Trước</a>
+                </li>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                    </li>
+                `;
+            }
+
+            paginationHtml += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Sau</a>
+                </li>
+            `;
+
+            paginationContainer.innerHTML = paginationHtml;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            renderAssets();
+        }
+
+        // Form classification and generation
+        function generateFormClassification() {
+            const cartItems = Object.values(shoppingCart);
+            if (cartItems.length === 0) {
+                goToStep(4);
+                alert('Vui lòng chọn ít nhất một tài sản!');
+                return;
+            }
+
+            // Group by manager and storage
+            const formGroups = {};
+            cartItems.forEach(item => {
+                const key = `${item.managerId}_${item.storage}`;
+                if (!formGroups[key]) {
+                    formGroups[key] = {
+                        manager: item.managerName,
+                        managerId: item.managerId,
+                        storage: item.storage,
+                        items: []
+                    };
+                }
+                formGroups[key].items.push(item);
+            });
+
+            renderFormClassification(formGroups);
+            updateFormsSummary(formGroups);
+        }
+
+        function renderFormClassification(formGroups) {
+            const container = document.getElementById('formsToCreate');
+            const facilityName = selectedFacility === 'facility1' ? 'Cơ sở Hà Nội' : 'Cơ sở TP.HCM';
+            const formTypeNames = {
+                'borrow': 'Phiếu mượn',
+                'return': 'Phiếu trả',
+                'transfer': 'Phiếu chuyển'
+            };
+            const formTypeName = formTypeNames[selectedFormType] || 'Phiếu đăng ký';
+
+            let html = '';
+            let formIndex = 1;
+
+            Object.entries(formGroups).forEach(([key, group]) => {
+                const totalItems = group.items.reduce((sum, item) => sum + item.quantity, 0);
+                
+                html += `
+                    <div class="enhanced-card mb-3 selected" onclick="toggleFormCard(this, 'form${formIndex}')" data-form-id="form${formIndex}">
+                        <div class="card-header-enhanced">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="form${formIndex}" checked onchange="updateFormsSummary()" onclick="event.stopPropagation()">
+                                <label class="custom-control-label" for="form${formIndex}" onclick="event.stopPropagation()">
+                                    <strong>Phiếu #${formIndex} - ${group.manager} (${group.storage})</strong>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://placehold.co/50x50/e3f2fd/1976d2?text=${group.manager.charAt(0)}" class="rounded-circle mr-3" alt="Manager">
+                                        <div>
+                                            <h6 class="mb-0">${group.manager}</h6>
+                                            <small class="text-muted">${group.managerId}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="mb-1"><i class="fas fa-warehouse mr-2 text-info"></i><strong>${group.storage}</strong></p>
+                                    <p class="mb-0"><i class="fas fa-building mr-2 text-primary"></i>${facilityName}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="mb-1"><i class="fas fa-calendar mr-2 text-success"></i>Ngày nhận: <strong>${new Date(selectedDate).toLocaleDateString('vi-VN')}</strong></p>
+                                    <p class="mb-0"><i class="fas fa-calendar-alt mr-2 text-warning"></i>Ngày trả: <strong>${new Date(document.getElementById('returnDate').value).toLocaleDateString('vi-VN')}</strong></p>
+                                </div>
+                            </div>
+                            <h6>Tài sản trong phiếu (${totalItems} mục):</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Tài sản</th>
+                                            <th>Loại</th>
+                                            <th>Số lượng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${group.items.map(item => `
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="${item.image}" width="30" height="30" class="rounded mr-2" alt="${item.name}">
+                                                        ${item.name}
+                                                    </div>
+                                                </td>
+                                                <td><span class="badge badge-info">${item.type}</span></td>
+                                                <td><strong>${item.quantity}</strong></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                formIndex++;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateFormsSummary(formGroups = null) {
+            if (!formGroups) {
+                // Count from existing forms
+                const checkedForms = document.querySelectorAll('#formsToCreate input[type="checkbox"]:checked');
+                const totalForms = document.querySelectorAll('#formsToCreate input[type="checkbox"]').length;
+                
+                document.getElementById('totalForms').textContent = totalForms;
+                document.getElementById('selectedFormsCount').textContent = checkedForms.length;
+                document.getElementById('createFormsBtn').disabled = checkedForms.length === 0;
+                
+                const step5NextBtn = document.getElementById('step5NextBtn');
+                if (step5NextBtn) step5NextBtn.disabled = checkedForms.length === 0;
+                
+                // Update fixed navigation if in form creation mode
+                if (isFormCreationMode) {
+                    updateFixedNavigationButtons();
+                }
+                
+                return;
+            }
+
+            const totalForms = Object.keys(formGroups).length;
+            const totalAssets = Object.values(shoppingCart).reduce((sum, item) => sum + item.quantity, 0);
+
+            document.getElementById('totalForms').textContent = totalForms;
+            document.getElementById('selectedFormsCount').textContent = totalForms;
+            document.getElementById('totalAssetsInForms').textContent = totalAssets;
+            document.getElementById('createFormsBtn').disabled = totalForms === 0;
+            
+            const step5NextBtn = document.getElementById('step5NextBtn');
+            if (step5NextBtn) step5NextBtn.disabled = totalForms === 0;
+            
+            // Update fixed navigation if in form creation mode
+            if (isFormCreationMode) {
+                updateFixedNavigationButtons();
+            }
+        }
+
+        function selectAllForms() {
+            document.querySelectorAll('#formsToCreate input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = true;
+                const card = checkbox.closest('.enhanced-card');
+                if (card) {
+                    card.classList.add('selected');
+                }
+            });
+            updateFormsSummary();
+        }
+
+        function unselectAllForms() {
+            document.querySelectorAll('#formsToCreate input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+                const card = checkbox.closest('.enhanced-card');
+                if (card) {
+                    card.classList.remove('selected');
+                }
+            });
+            updateFormsSummary();
+        }
+        
+        function toggleFormCard(cardElement, formId) {
+            const checkbox = document.getElementById(formId);
+            
+            // Toggle checkbox state
+            checkbox.checked = !checkbox.checked;
+            
+            // Toggle card selected state
+            if (checkbox.checked) {
+                cardElement.classList.add('selected');
+            } else {
+                cardElement.classList.remove('selected');
+            }
+            
+            // Update summary
+            updateFormsSummary();
+        }
+
+        function createForms() {
+            const selectedForms = document.querySelectorAll('#formsToCreate input[type="checkbox"]:checked');
+            
+            if (selectedForms.length === 0) {
+                alert('Vui lòng chọn ít nhất một phiếu để tạo!');
+                return;
+            }
+
+            // Show progress bar
+            const progressBar = document.getElementById('saveProgressBar');
+            const progressBarElement = progressBar.querySelector('.progress-bar');
+            progressBar.style.display = 'block';
+
+            let progress = 0;
+            const totalForms = selectedForms.length;
+            const createdForms = [];
+
+            // Simulate saving process
+            const saveInterval = setInterval(() => {
+                progress += (100 / totalForms) / 10;
+                progressBarElement.style.width = Math.min(progress, 100) + '%';
+
+                if (progress >= 100) {
+                    clearInterval(saveInterval);
+                    
+                    // Generate form IDs
+                    for (let i = 0; i < totalForms; i++) {
+                        createdForms.push({
+                            id: `TF-${String(Date.now() + i).slice(-3)}`,
+                            manager: `Manager ${String.fromCharCode(65 + i)}`
+                        });
+                    }
+
+                    setTimeout(() => {
+                        progressBar.style.display = 'none';
+                        progressBarElement.style.width = '0%';
+                        showCompletionResults(createdForms);
+                        goToStep(6);
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        function showCompletionResults(createdForms) {
+            const container = document.getElementById('createdFormsList');
+            const html = createdForms.map(form => 
+                `<div><strong>Phiếu #${form.id}</strong> - Gửi đến ${form.manager}</div>`
+            ).join('');
+            container.innerHTML = html;
+        }
+
+        // Utility functions
+        function filterTransactionForms() {
+            // Implementation for filtering transaction forms in step 1
+            console.log('Filtering transaction forms...');
+        }
+
+        // Event listeners
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox' && e.target.closest('#formsToCreate')) {
+                const card = e.target.closest('.enhanced-card');
+                if (card) {
+                    if (e.target.checked) {
+                        card.classList.add('selected');
+                    } else {
+                        card.classList.remove('selected');
+                    }
+                }
+                updateFormsSummary();
+            }
+        });
+
+        // DataTable initialization
+        function initializeDataTable() {
+            $('#transactionFormsTable').DataTable({
+                responsive: true,
+                processing: true,
+                serverSide: false, // Set to true for real AJAX
+                data: mockTransactionForms, // Use AJAX URL in production
+                language: {
+                    "decimal": "",
+                    "emptyTable": "Không có dữ liệu",
+                    "info": "Hiển thị _START_ đến _END_ của _TOTAL_ bản ghi",
+                    "infoEmpty": "Hiển thị 0 đến 0 của 0 bản ghi",
+                    "infoFiltered": "(được lọc từ _MAX_ bản ghi)",
+                    "lengthMenu": "Hiển thị _MENU_ bản ghi",
+                    "loadingRecords": "Đang tải...",
+                    "processing": "Đang xử lý...",
+                    "search": "Tìm kiếm:",
+                    "zeroRecords": "Không tìm thấy kết quả phù hợp",
+                    "paginate": {
+                        "first": "Đầu tiên",
+                        "last": "Cuối cùng",
+                        "next": "Tiếp theo",
+                        "previous": "Trước"
+                    }
+                },
+                columns: [
+                    { 
+                        data: 'id',
+                        render: function(data, type, row) {
+                            return '<strong>' + data + '</strong>';
+                        }
+                    },
+                    { data: 'facility' },
+                    { data: 'type' },
+                    { data: 'manager' },
+                    { data: 'created_date' },
+                    { 
+                        data: 'status',
+                        render: function(data, type, row) {
+                            return '<span class="badge badge-' + row.status_class + '">' + data + '</span>';
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        render: function(data, type, row) {
+                            return `
+                                <button class="btn btn-sm btn-outline-info" onclick="previewForm('${row.id}')" title="Xem trước">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editForm('${row.id}')" title="Chỉnh sửa">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteForm('${row.id}')" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            `;
+                        }
+                    }
+                ],
+                pageLength: 10,
+                order: [[4, 'desc']] // Sort by created date
+            });
+        }
+
+        // Tom Select initialization
+        function initializeTomSelect() {
+            // Initialize Tom Select for filter dropdowns
+            new TomSelect('#statusFilter', {
+                allowEmptyOption: true,
+                placeholder: 'Tất cả trạng thái'
+            });
+
+            new TomSelect('#facilityFilter', {
+                allowEmptyOption: true,
+                placeholder: 'Tất cả cơ sở'
+            });
+
+            new TomSelect('#assetTypeFilter', {
+                allowEmptyOption: true,
+                placeholder: 'Tất cả loại'
+            });
+
+            new TomSelect('#storageFilter', {
+                allowEmptyOption: true,
+                placeholder: 'Tất cả kho'
+            });
+        }
+
+        // Preview form function
+        function previewForm(formId) {
+            const form = mockTransactionForms.find(f => f.id === formId);
+            if (!form) return;
+
+            const previewContent = `
+                <div class="preview-section">
+                    <div class="preview-label">Mã phiếu</div>
+                    <div class="preview-value">${form.id}</div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="preview-section">
+                            <div class="preview-label">Cơ sở</div>
+                            <div class="preview-value">${form.facility}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="preview-section">
+                            <div class="preview-label">Loại phiếu</div>
+                            <div class="preview-value">${form.type}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="preview-section">
+                            <div class="preview-label">Người quản lý</div>
+                            <div class="preview-value">${form.manager}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="preview-section">
+                            <div class="preview-label">Trạng thái</div>
+                            <div class="preview-value">
+                                <span class="badge badge-${form.status_class}">${form.status}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="preview-section">
+                            <div class="preview-label">Ngày nhận</div>
+                            <div class="preview-value">${form.receive_date}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="preview-section">
+                            <div class="preview-label">Ngày trả</div>
+                            <div class="preview-value">${form.return_date}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="preview-section">
+                    <div class="preview-label">Tài sản (${form.assets.length} mục)</div>
+                    <div class="mt-2">
+                        ${form.assets.map(asset => `
+                            <div class="asset-preview-item">
+                                <img src="https://placehold.co/40x40/e3f2fd/1976d2?text=${asset.type.charAt(0)}" class="asset-preview-image" alt="${asset.name}">
+                                <div class="flex-grow-1">
+                                    <div class="font-weight-bold">${asset.name}</div>
+                                    <small class="text-muted">${asset.type} - Số lượng: ${asset.quantity}</small>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                ${form.notes ? `
+                    <div class="preview-section">
+                        <div class="preview-label">Ghi chú</div>
+                        <div class="preview-value">${form.notes}</div>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('formPreviewContent').innerHTML = previewContent;
+            $('#formPreviewModal').modal('show');
+        }
+
+        // Modern edit form function
+        async function editForm(formId) {
+            try {
+                showLoadingState(true);
+                
+                // Try to load from API first, fallback to mock data
+                let form = await loadFormFromAPI(formId);
+                if (!form) {
+                    form = mockTransactionForms.find(f => f.id === formId);
+                    if (!form) {
+                        showNotification('Không tìm thấy phiếu', 'error');
+                        return;
+                    }
+                }
+                
+                // Store edit form data
+                editFormData = form;
+                
+                // Enhance assets with item details if not present
+                if (form.assets) {
+                    form.assets = form.assets.map((asset, index) => ({
+                        ...asset,
+                        item_detail_id: asset.item_detail_id || (44 + index), // Based on SQL data
+                        item_key: asset.item_key || (595 + index),
+                        storage_item_key: asset.storage_item_key || (325 + index),
+                        notes: asset.notes || asset.note || ''
+                    }));
+                }
+                
+                // Set form ID in modal title
+                document.getElementById('editFormId').textContent = form.id;
+                
+                // Load form information
+                loadEditFormInfo();
+                loadEditFormContent();
+                
+                // Show modal
+                $('#editFormModal').modal('show');
+                
+            } catch (error) {
+                showNotification('Lỗi khi tải thông tin phiếu', 'danger');
+            } finally {
+                showLoadingState(false);
+            }
+        }
+
+        // Load form basic information
+        function loadEditFormInfo() {
+            const form = editFormData;
+            const infoContainer = document.getElementById('editFormBasicInfo');
+            
+            infoContainer.innerHTML = `
+                <div class="edit-info-card">
+                    <div class="edit-info-header">
+                        <h6><i class="fas fa-file-alt mr-2"></i>Thông tin cơ bản</h6>
+                    </div>
+                    <div class="edit-info-body">
+                        <div class="edit-info-item">
+                            <span class="edit-info-label">Mã phiếu:</span>
+                            <span class="edit-info-value">${form.id}</span>
+                        </div>
+                        <div class="edit-info-item">
+                            <span class="edit-info-label">Loại phiếu:</span>
+                            <span class="edit-info-value">${form.type}</span>
+                        </div>
+                        <div class="edit-info-item">
+                            <span class="edit-info-label">Trạng thái:</span>
+                            <span class="edit-info-value">
+                                <span class="badge badge-${getStatusColor(form.status)}">${form.status}</span>
+                            </span>
+                        </div>
+                        <div class="edit-info-item">
+                            <span class="edit-info-label">Cơ sở:</span>
+                            <span class="edit-info-value">${form.facility}</span>
+                        </div>
+                        <div class="edit-info-item">
+                            <span class="edit-info-label">Người tạo:</span>
+                            <span class="edit-info-value">${form.creator}</span>
+                        </div>
+                        <div class="edit-info-item">
+                            <span class="edit-info-label">Ngày tạo:</span>
+                            <span class="edit-info-value">${form.created_date}</span>
+                        </div>
+                        <div class="edit-info-item">
+                            <span class="edit-info-label">Ngày nhận:</span>
+                            <span class="edit-info-value">${form.receive_date}</span>
+                        </div>
+                        <div class="edit-info-item">
+                            <span class="edit-info-label">Ngày trả dự kiến:</span>
+                            <span class="edit-info-value">${form.return_date}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="edit-info-card">
+                    <div class="edit-info-header">
+                        <h6><i class="fas fa-boxes mr-2"></i>Tài sản đã chọn</h6>
+                    </div>
+                    <div class="edit-info-body">
+                        <div class="edit-asset-list" id="editableAssetList">
+                            ${form.assets.map((asset, index) => `
+                                <div class="edit-asset-item" data-asset-index="${index}">
+                                    <img src="https://placehold.co/50x50/e3f2fd/1976d2?text=${asset.type.charAt(0)}" 
+                                         class="edit-asset-image" alt="${asset.name}">
+                                    <div class="edit-asset-details">
+                                        <div class="edit-asset-name">${asset.name}</div>
+                                        <div class="edit-asset-type">${asset.type}</div>
+                                        <div class="edit-asset-notes">
+                                            <small class="text-muted">${asset.notes || ''}</small>
+                                        </div>
+                                    </div>
+                                    <div class="edit-quantity-controls">
+                                        <div class="quantity-input-group">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="adjustQuantity(${index}, -1)">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                            <input type="number" class="form-control form-control-sm quantity-input" 
+                                                   value="${asset.quantity}" min="0" max="999" 
+                                                   onchange="updateAssetQuantity(${index}, this.value)"
+                                                   data-original-quantity="${asset.quantity}">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="adjustQuantity(${index}, 1)">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="removeAssetItem(${index})" title="Xóa tài sản">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addNewAsset()">
+                                <i class="fas fa-plus mr-2"></i>Thêm tài sản
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load editable form content
+        function loadEditFormContent() {
+            const form = editFormData;
+            const contentContainer = document.getElementById('editFormContent');
+            
+            contentContainer.innerHTML = `
+                <!-- Form Type Section -->
+                <div class="edit-form-section">
+                    <div class="edit-section-header">
+                        <h6><i class="fas fa-file-alt mr-2"></i>Loại phiếu</h6>
+                    </div>
+                    <div class="edit-section-body">
+                        <div class="form-group">
+                            <label>Chọn loại phiếu</label>
+                            <select class="form-control" id="editFormType">
+                                <option value="LAB_HSC">Phiếu mượn thiết bị phòng thí nghiệm HSC</option>
+                                <option value="LAB_MSC">Phiếu mượn thiết bị phòng thí nghiệm MSC</option>
+                                <option value="MAKER_HSC">Phiếu mượn thiết bị phòng Makerlab HSC</option>
+                                <option value="MAKER_MSC">Phiếu mượn thiết bị phòng Makerlab MSC</option>
+                                <option value="PHYSICS_HSC">Phiếu mượn thiết bị & phòng Vật lý HSC</option>
+                                <option value="NUTRITION_MSC">Phiếu mượn vật tư & phòng Dinh dưỡng MSC</option>
+                                <option value="ART_MSC">Phiếu mượn vật tư Mỹ thuật MSC</option>
+                                <option value="ART_HSC">Phiếu mượn vật tư Mỹ thuật HSC</option>
+                                <option value="MEDICAL_MSC">Phiếu mượn vật tư Y tế MSC - Phòng A103</option>
+                                <option value="MEDICAL_HSC">Phiếu mượn vật tư Y tế HSC - Phòng 127</option>
+                                <option value="ROOM_HSC">Phiếu xin cấp Phòng của cơ sở vật chất HSC</option>
+                                <option value="ROOM_MSC">Phiếu xin cấp Phòng cơ sở vật chất MSC</option>
+                                <option value="SUPPLY_HSC">Phiếu xin cấp vật tư thiết bị cơ sở vật chất HSC</option>
+                                <option value="SUPPLY_MSC">Phiếu cấp vật tư thiết bị của cơ sở vật chất MSC</option>
+                                <option value="AUDIT_MSC">Phiếu kiểm kho Lab MSC</option>
+                                <option value="LAB_AUDIT_HSC">Phiếu kiểm kho Lab HSC</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dates Section -->
+                <div class="edit-form-section">
+                    <div class="edit-section-header">
+                        <h6><i class="fas fa-calendar mr-2"></i>Thông tin thời gian</h6>
+                    </div>
+                    <div class="edit-section-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Ngày nhận/cấp</label>
+                                    <input type="date" class="form-control" id="editReceiveDate" 
+                                           value="${form.receive_date.split('/').reverse().join('-')}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Ngày trả dự kiến</label>
+                                    <input type="date" class="form-control" id="editReturnDate" 
+                                           value="${form.return_date.split('/').reverse().join('-')}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Section -->
+                <div class="edit-form-section">
+                    <div class="edit-section-header">
+                        <h6><i class="fas fa-flag mr-2"></i>Trạng thái</h6>
+                    </div>
+                    <div class="edit-section-body">
+                        <div class="form-group">
+                            <label>Trạng thái phiếu</label>
+                            <select class="form-control" id="editStatus">
+                                <option value="Chờ duyệt" ${form.status === 'Chờ duyệt' ? 'selected' : ''}>Chờ duyệt</option>
+                                <option value="Đã duyệt" ${form.status === 'Đã duyệt' ? 'selected' : ''}>Đã duyệt</option>
+                                <option value="Đã cấp" ${form.status === 'Đã cấp' ? 'selected' : ''}>Đã cấp</option>
+                                <option value="Đã trả" ${form.status === 'Đã trả' ? 'selected' : ''}>Đã trả</option>
+                                <option value="Quá hạn" ${form.status === 'Quá hạn' ? 'selected' : ''}>Quá hạn</option>
+                                <option value="Hủy" ${form.status === 'Hủy' ? 'selected' : ''}>Hủy</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ghi chú</label>
+                            <textarea class="form-control" id="editNotes" rows="3" 
+                                      placeholder="Nhập ghi chú..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Initialize Tom Select
+            setTimeout(() => {
+                new TomSelect('#editFormType');
+                new TomSelect('#editStatus');
+            }, 100);
+        }
+
+        // Helper function to get status color
+        function getStatusColor(status) {
+            const colors = {
+                'Chờ duyệt': 'warning',
+                'Đã duyệt': 'info', 
+                'Đã cấp': 'success',
+                'Đã trả': 'success',
+                'Quá hạn': 'danger',
+                'Hủy': 'secondary'
+            };
+            return colors[status] || 'secondary';
+        }
+
+        // Asset quantity management functions
+        function adjustQuantity(assetIndex, change) {
+            const quantityInput = document.querySelector(`input[onchange="updateAssetQuantity(${assetIndex}, this.value)"]`);
+            if (quantityInput) {
+                const currentValue = parseInt(quantityInput.value) || 0;
+                const newValue = Math.max(0, currentValue + change);
+                quantityInput.value = newValue;
+                updateAssetQuantity(assetIndex, newValue);
+            }
+        }
+
+        function updateAssetQuantity(assetIndex, newQuantity) {
+            if (!editFormData || !editFormData.assets[assetIndex]) return;
+            
+            const asset = editFormData.assets[assetIndex];
+            const originalQuantity = asset.quantity;
+            const quantity = parseInt(newQuantity) || 0;
+            
+            // Update the asset quantity
+            asset.quantity = quantity;
+            
+            // Mark as modified if changed
+            const assetItem = document.querySelector(`[data-asset-index="${assetIndex}"]`);
+            if (assetItem) {
+                if (quantity !== originalQuantity) {
+                    assetItem.classList.add('modified');
+                } else {
+                    assetItem.classList.remove('modified');
+                }
+            }
+            
+            // Update total quantities display
+            updateFormSummary();
+        }
+
+        function removeAssetItem(assetIndex) {
+            if (!editFormData || !editFormData.assets[assetIndex]) return;
+            
+            if (confirm('Bạn có chắc muốn xóa tài sản này khỏi phiếu?')) {
+                // Remove from assets array
+                editFormData.assets.splice(assetIndex, 1);
+                
+                // Reload the form info to reflect changes
+                loadEditFormInfo();
+                updateFormSummary();
+            }
+        }
+
+        function addNewAsset() {
+            // This would open an asset selection modal in a real implementation
+            showNotification('Chức năng thêm tài sản sẽ được phát triển', 'info');
+        }
+
+        function updateFormSummary() {
+            // Update any summary displays that show total quantities, etc.
+            const totalItems = editFormData.assets.reduce((sum, asset) => sum + asset.quantity, 0);
+            console.log(`Total items: ${totalItems}`);
+        }
+
+        // API Integration functions
+        const API_BASE_URL = 'http://localhost:9000';
+
+        async function apiRequest(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+            
+            try {
+                const response = await fetch(url, { ...defaultOptions, ...options });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API request failed:', error);
+                showNotification(`Lỗi kết nối API: ${error.message}`, 'danger');
+                throw error;
+            }
+        }
+
+        // Load form data from API
+        async function loadFormFromAPI(formId) {
+            try {
+                showLoadingState(true);
+                const formData = await apiRequest(`/api/forms/${formId}`);
+                return formData;
+            } catch (error) {
+                showNotification('Không thể tải dữ liệu phiếu từ server', 'danger');
+                return null;
+            } finally {
+                showLoadingState(false);
+            }
+        }
+
+        // Save form changes to API
+        async function saveFormChanges() {
+            if (!editFormData) return;
+            
+            try {
+                showLoadingState(true);
+                
+                // Collect updated form data
+                const formType = document.getElementById('editFormType').value;
+                const receiveDate = document.getElementById('editReceiveDate').value;
+                const returnDate = document.getElementById('editReturnDate').value;
+                const status = document.getElementById('editStatus').value;
+                const notes = document.getElementById('editNotes').value;
+                
+                // Prepare data for API
+                const updateData = {
+                    id: editFormData.id,
+                    type_key: formType,
+                    receive_date: receiveDate,
+                    return_date: returnDate,
+                    status: status,
+                    notes: notes,
+                    assets: editFormData.assets.map(asset => ({
+                        item_detail_id: asset.item_detail_id || null,
+                        item_key: asset.item_key || null,
+                        storage_item_key: asset.storage_item_key || null,
+                        quantity: asset.quantity,
+                        note: asset.notes || ''
+                    }))
+                };
+                
+                // Save to API
+                const result = await apiRequest(`/api/forms/${editFormData.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(updateData)
+                });
+                
+                // Update local data
+                editFormData.type = getFormTypeName(formType);
+                editFormData.receive_date = formatDate(receiveDate);
+                editFormData.return_date = formatDate(returnDate);
+                editFormData.status = status;
+                editFormData.notes = notes;
+                
+                // Update the form in the main list
+                const formIndex = mockTransactionForms.findIndex(f => f.id === editFormData.id);
+                if (formIndex !== -1) {
+                    mockTransactionForms[formIndex] = { ...editFormData };
+                }
+                
+                // Refresh the table
+                loadTransactionFormsTable();
+                
+                // Show success message
+                showNotification('Cập nhật phiếu thành công!', 'success');
+                
+                // Close modal
+                $('#editFormModal').modal('hide');
+                
+            } catch (error) {
+                showNotification('Không thể lưu thay đổi. Vui lòng thử lại.', 'danger');
+            } finally {
+                showLoadingState(false);
+            }
+        }
+
+        // Load available assets from API
+        async function loadAssetsFromAPI() {
+            try {
+                const assets = await apiRequest('/api/assets');
+                return assets;
+            } catch (error) {
+                showNotification('Không thể tải danh sách tài sản', 'warning');
+                return [];
+            }
+        }
+
+        // Show/hide loading state
+        function showLoadingState(isLoading) {
+            const modal = document.getElementById('editFormModal');
+            const overlay = modal.querySelector('.loading-overlay') || createLoadingOverlay();
+            
+            if (isLoading) {
+                modal.appendChild(overlay);
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
+
+        function createLoadingOverlay() {
+            const overlay = document.createElement('div');
+            overlay.className = 'loading-overlay';
+            overlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255, 255, 255, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                border-radius: 20px;
+            `;
+            overlay.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div>Đang xử lý...</div>
+                </div>
+            `;
+            return overlay;
+        }
+        
+        // Helper function to get form type name from code
+        function getFormTypeName(code) {
+            const typeMap = {
+                'LAB_HSC': 'Phiếu mượn thiết bị phòng thí nghiệm HSC',
+                'LAB_MSC': 'Phiếu mượn thiết bị phòng thí nghiệm MSC',
+                'MAKER_HSC': 'Phiếu mượn thiết bị phòng Makerlab HSC',
+                'MAKER_MSC': 'Phiếu mượn thiết bị phòng Makerlab MSC',
+                'PHYSICS_HSC': 'Phiếu mượn thiết bị & phòng Vật lý HSC',
+                'NUTRITION_MSC': 'Phiếu mượn vật tư & phòng Dinh dưỡng MSC',
+                'ART_MSC': 'Phiếu mượn vật tư Mỹ thuật MSC',
+                'ART_HSC': 'Phiếu mượn vật tư Mỹ thuật HSC',
+                'MEDICAL_MSC': 'Phiếu mượn vật tư Y tế MSC - Phòng A103',
+                'MEDICAL_HSC': 'Phiếu mượn vật tư Y tế HSC - Phòng 127',
+                'ROOM_HSC': 'Phiếu xin cấp Phòng của cơ sở vật chất HSC',
+                'ROOM_MSC': 'Phiếu xin cấp Phòng cơ sở vật chất MSC',
+                'SUPPLY_HSC': 'Phiếu xin cấp vật tư thiết bị cơ sở vật chất HSC',
+                'SUPPLY_MSC': 'Phiếu cấp vật tư thiết bị của cơ sở vật chất MSC',
+                'AUDIT_MSC': 'Phiếu kiểm kho Lab MSC',
+                'LAB_AUDIT_HSC': 'Phiếu kiểm kho Lab HSC'
+            };
+            return typeMap[code] || code;
+        }
+        
+        // Helper function to format date
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN');
+        }
+        
+        // Helper function to show notifications
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+
+        // Delete form function
+        function deleteForm(formId) {
+            if (confirm('Bạn có chắc muốn xóa phiếu này?')) {
+                console.log('Deleting form:', formId);
+                alert('Xóa phiếu thành công!');
+                // In real application, send AJAX request to server
+                // $('#transactionFormsTable').DataTable().ajax.reload();
+            }
+        }
+
+        
+        // Prevent form submission on Enter
+            const steps = document.querySelectorAll('#editProgressSteps .step');
+            steps.forEach((stepEl, index) => {
+                const stepNum = index + 1;
+                stepEl.classList.remove('active', 'completed');
+                
+                if (stepNum < step) {
+                    stepEl.classList.add('completed');
+                } else if (stepNum === step) {
+                    stepEl.classList.add('active');
+                }
+            });
+        
+        
+        function updateEditNavigationButtons() {
+            const prevBtn = document.getElementById('editPrevBtn');
+            const nextBtn = document.getElementById('editNextBtn');
+            const saveBtn = document.getElementById('editSaveBtn');
+            
+            prevBtn.disabled = currentEditStep === 1;
+            
+            if (currentEditStep === 4) {
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                saveBtn.style.display = 'none';
+                
+                // Update next button state based on current step validation
+                switch(currentEditStep) {
+                    case 1:
+                        nextBtn.disabled = !editSelectedFacility;
+                        break;
+                    case 2:
+                        nextBtn.disabled = Object.keys(editShoppingCart).length === 0;
+                        break;
+                    case 3:
+                        const checkedForms = document.querySelectorAll('#editFormsToCreate input[type="checkbox"]:checked');
+                        nextBtn.disabled = checkedForms.length === 0;
+                        break;
+                    default:
+                        nextBtn.disabled = false;
+                }
+            }
+        }
+        
+        function renderEditStepContent(step) {
+            const container = document.getElementById('editFormContent');
+            
+            switch(step) {
+                case 1:
+                    container.innerHTML = renderEditStep1();
+                    break;
+                case 2:
+                    container.innerHTML = renderEditStep2();
+                    initializeEditAssets();
+                    break;
+                case 3:
+                    container.innerHTML = renderEditStep3();
+                    generateEditFormClassification();
+                    break;
+                case 4:
+                    container.innerHTML = renderEditStep4();
+                    break;
+            }
+            
+            // Initialize Tom Select for dropdowns
+            setTimeout(() => {
+                container.querySelectorAll('select').forEach(select => {
+                    if (!select.tomselect) {
+                        new TomSelect(select);
+                    }
+                });
+                
+                // Set form type value for edit modal
+                if (step === 1 && editSelectedFormType) {
+                    const editFormTypeSelect = document.getElementById('editFormType');
+                    if (editFormTypeSelect) {
+                        editFormTypeSelect.value = editSelectedFormType;
+                        if (editFormTypeSelect.tomselect) {
+                            editFormTypeSelect.tomselect.setValue(editSelectedFormType);
+                        }
+                    }
+                }
+            }, 100);
+        }
+        
+        // Load forms from API or use mock data
+        async function loadTransactionForms() {
+            try {
+                const forms = await apiRequest('/api/forms');
+                return forms;
+            } catch (error) {
+                console.warn('API not available, using mock data');
+                return mockTransactionForms;
+            }
+        }
+
+        // Initialize DataTable for transaction forms
+        async function loadTransactionFormsTable() {
+            if ($.fn.DataTable.isDataTable('#transactionFormsTable')) {
+                $('#transactionFormsTable').DataTable().destroy();
+            }
+            
+            // Load data from API or fallback to mock
+            const formsData = await loadTransactionForms();
+            
+            // Update mock data with API data if available
+            if (formsData && formsData !== mockTransactionForms) {
+                mockTransactionForms.length = 0;
+                mockTransactionForms.push(...formsData);
+            }
+            
+            // Initialize DataTable (existing code would continue here)
+            console.log('Transaction forms loaded:', formsData.length);
+        }
+
+        // Initialize page with API integration
+        async function initializePage() {
+            try {
+                // Load transaction forms table
+                await loadTransactionFormsTable();
+                
+                // Load other initial data if needed
+                console.log('Page initialized with API integration');
+            } catch (error) {
+                console.error('Failed to initialize page:', error);
+                showNotification('Có lỗi khi khởi tạo trang', 'warning');
+            }
+        }
+
+        // Edit form from preview
+        function editFormFromPreview() {
+            $('#formPreviewModal').modal('hide');
+            // Get form ID from preview modal and open edit modal
+            const formId = 'TF-001'; // This should be extracted from preview data
+            setTimeout(() => editForm(formId), 300);
+        }
+        
+        // Edit step content rendering functions
+        function renderEditStep1() {
+            return `
+                <div class="row">
+                    <div class="col-lg-8">
+                        <!-- Chọn cơ sở -->
+                        <div class="enhanced-card mb-4">
+                            <div class="card-header-enhanced">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-building mr-2 text-primary"></i>
+                                    Chọn cơ sở <span class="text-danger">*</span>
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="facility-card ${editSelectedFacility === 'facility1' ? 'selected' : ''}" onclick="selectEditFacility(this, 'facility1')">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="facility-icon mr-3">
+                                                    <i class="fas fa-building fa-3x text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Cơ sở Hà Nội</h6>
+                                                    <small class="text-muted">Trụ sở chính</small>
+                                                </div>
+                                            </div>
+                                            <div class="facility-details">
+                                                <p class="mb-2"><i class="fas fa-map-marker-alt mr-2 text-danger"></i>123 Phố Huế, Hai Bà Trưng, Hà Nội</p>
+                                                <p class="mb-2"><i class="fas fa-phone mr-2 text-success"></i>024-3456-7890</p>
+                                                <p class="mb-0"><i class="fas fa-user-tie mr-2 text-info"></i>Nguyễn Văn An - Quản lý cơ sở</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="facility-card ${editSelectedFacility === 'facility2' ? 'selected' : ''}" onclick="selectEditFacility(this, 'facility2')">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="facility-icon mr-3">
+                                                    <i class="fas fa-building fa-3x text-success"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Cơ sở TP.HCM</h6>
+                                                    <small class="text-muted">Chi nhánh phía Nam</small>
+                                                </div>
+                                            </div>
+                                            <div class="facility-details">
+                                                <p class="mb-2"><i class="fas fa-map-marker-alt mr-2 text-danger"></i>456 Nguyễn Huệ, Quận 1, TP.HCM</p>
+                                                <p class="mb-2"><i class="fas fa-phone mr-2 text-success"></i>028-1234-5678</p>
+                                                <p class="mb-0"><i class="fas fa-user-tie mr-2 text-info"></i>Trần Thị Bình - Quản lý cơ sở</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+        
+                        <!-- Chọn loại phiếu -->
+                        <div class="enhanced-card mb-4">
+                            <div class="card-header-enhanced">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-file-alt mr-2 text-primary"></i>
+                                    Loại phiếu
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label><i class="fas fa-file-alt mr-2 text-primary"></i>Chọn loại phiếu</label>
+                                    <select class="form-control" id="editFormType" onchange="updateEditFormType()">
+                                        <option value="LAB_HSC">Phiếu mượn thiết bị phòng thí nghiệm HSC</option>
+                                        <option value="LAB_MSC">Phiếu mượn thiết bị phòng thí nghiệm MSC</option>
+                                        <option value="MAKER_HSC">Phiếu mượn thiết bị phòng Makerlab HSC</option>
+                                        <option value="MAKER_MSC">Phiếu mượn thiết bị phòng Makerlab MSC</option>
+                                        <option value="PHYSICS_HSC">Phiếu mượn thiết bị & phòng Vật lý HSC</option>
+                                        <option value="NUTRITION_MSC">Phiếu mượn vật tư & phòng Dinh dưỡng MSC</option>
+                                        <option value="ART_MSC">Phiếu mượn vật tư Mỹ thuật MSC</option>
+                                        <option value="ART_HSC">Phiếu mượn vật tư Mỹ thuật HSC</option>
+                                        <option value="MEDICAL_MSC">Phiếu mượn vật tư Y tế MSC - Phòng A103</option>
+                                        <option value="MEDICAL_HSC">Phiếu mượn vật tư Y tế HSC - Phòng 127</option>
+                                        <option value="ROOM_HSC">Phiếu xin cấp Phòng của cơ sở vật chất HSC</option>
+                                        <option value="ROOM_MSC">Phiếu xin cấp Phòng cơ sở vật chất MSC</option>
+                                        <option value="SUPPLY_HSC">Phiếu xin cấp vật tư thiết bị cơ sở vật chất HSC</option>
+                                        <option value="SUPPLY_MSC">Phiếu cấp vật tư thiết bị của cơ sở vật chất MSC</option>
+                                        <option value="AUDIT_MSC">Phiếu kiểm kho Lab MSC</option>
+                                        <option value="LAB_AUDIT_HSC">Phiếu kiểm kho Lab HSC</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+        
+                        <!-- Thông tin thời gian -->
+                        <div class="enhanced-card">
+                            <div class="card-header-enhanced">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-calendar mr-2 text-primary"></i>
+                                    Thông tin thời gian
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label><i class="fas fa-calendar-plus mr-2 text-success"></i>Ngày nhận/cấp <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control" id="editReceiveDate" value="${editSelectedDate}" onchange="updateEditReturnDate()">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label><i class="fas fa-calendar-minus mr-2 text-warning"></i>Ngày trả dự kiến</label>
+                                            <input type="date" class="form-control" id="editReturnDate" readonly>
+                                            <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Tự động tính +14 ngày từ ngày nhận</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div class="col-lg-4">
+                        <div class="enhanced-card position-sticky" style="top: 20px;">
+                            <div class="card-header-enhanced">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-info-circle mr-2 text-primary"></i>
+                                    Thông tin đã chọn
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="editSelectedInfo">
+                                    <!-- Will be populated by updateEditSelectedInfo() -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Edit form step rendering functions
+        function renderEditStep2() {
+            return `
+                <div class="asset-selection-container">
+                    <div class="assets-main-panel">
+                        <div class="asset-filters">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        </div>
+                                        <input type="text" class="form-control" placeholder="Tìm kiếm tài sản..." id="editAssetSearch">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-control" id="editAssetTypeFilter">
+                                        <option value="">Tất cả loại</option>
+                                        <option value="Máy tính">Máy tính</option>
+                                        <option value="Thiết bị văn phòng">Thiết bị văn phòng</option>
+                                        <option value="Nội thất">Nội thất</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-control" id="editStorageFilter">
+                                        <option value="">Tất cả kho</option>
+                                        <option value="Kho A">Kho A</option>
+                                        <option value="Kho B">Kho B</option>
+                                        <option value="Kho C">Kho C</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary btn-block">
+                                        <i class="fas fa-times mr-1"></i>Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="view-controls">
+                            <div class="d-flex align-items-center">
+                                <span class="text-muted mr-2">Hiển thị:</span>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-secondary active">
+                                        <i class="fas fa-th"></i> Grid
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary">
+                                        <i class="fas fa-list"></i> List
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="text-muted">
+                                <span id="editAssetCount">0</span> tài sản có sẵn
+                            </div>
+                        </div>
+                        <div id="editAssetsContainer" class="assets-grid"></div>
+                    </div>
+                    <div class="shopping-cart">
+                        <div class="cart-header">
+                            <h6 class="cart-title">
+                                <i class="fas fa-shopping-cart"></i>
+                                Giỏ hàng
+                            </h6>
+                            <div class="cart-count" id="editCartCount">0</div>
+                        </div>
+                        <div class="cart-items" id="editCartItems"></div>
+                        <div class="cart-summary">
+                            <div class="cart-total">
+                                <span>Tổng số lượng:</span>
+                                <span id="editTotalQuantity">0</span>
+                            </div>
+                            <div class="cart-actions">
+                                <button class="btn clear-btn">
+                                    <i class="fas fa-trash mr-2"></i>Xóa tất cả
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderEditStep3() {
+            return `
+                <div class="enhanced-card">
+                    <div class="card-header-enhanced">
+                        <h5 class="mb-0">
+                            <i class="fas fa-layer-group mr-2 text-primary"></i>
+                            Phân loại và tạo phiếu
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Hệ thống đã phân loại tự động các tài sản theo manager và storage.
+                        </div>
+                        <div id="editFormsToCreate"></div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderEditStep4() {
+            return `
+                <div class="enhanced-card">
+                    <div class="card-header-enhanced">
+                        <h5 class="mb-0">
+                            <i class="fas fa-check-circle mr-2 text-success"></i>
+                            Hoàn thành chỉnh sửa
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <i class="fas fa-edit fa-5x text-primary mb-4"></i>
+                        <h4>Sẵn sàng lưu thay đổi!</h4>
+                        <p class="text-muted mb-4">Kiểm tra lại thông tin và nhấn "Lưu thay đổi" để cập nhật phiếu.</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Edit form helper functions
+        function selectEditFacility(element, facilityId) {
+            document.querySelectorAll('.facility-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            editSelectedFacility = facilityId;
+            updateEditNavigationButtons();
+        }
+        
+        function selectEditFormType(element, typeId) {
+            document.querySelectorAll('.form-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            editSelectedFormType = typeId;
+            updateEditNavigationButtons();
+        }
+        
+        function updateEditFormType() {
+            editSelectedFormType = document.getElementById('editFormType').value;
+            updateEditNavigationButtons();
+        }
+        
+        function updateEditReturnDate() {
+            const receiveDate = document.getElementById('editReceiveDate').value;
+            if (receiveDate) {
+                const returnDate = new Date(receiveDate);
+                returnDate.setDate(returnDate.getDate() + 14);
+                document.getElementById('editReturnDate').value = returnDate.toISOString().split('T')[0];
+                editSelectedDate = receiveDate;
+            }
+        }
+        
+        function initializeEditAssets() {
+            updateEditCartDisplay();
+        }
+        
+        function updateEditCartDisplay() {
+            const cartItems = Object.values(editShoppingCart);
+            const cartCount = cartItems.length;
+            const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+            
+            document.getElementById('editCartCount').textContent = cartCount;
+            document.getElementById('editTotalQuantity').textContent = totalQuantity;
+            
+            const cartItemsContainer = document.getElementById('editCartItems');
+            if (cartCount === 0) {
+                cartItemsContainer.innerHTML = `
+                    <div class="cart-empty">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>Giỏ hàng trống</p>
+                    </div>
+                `;
+            } else {
+                const cartItemsHtml = cartItems.map(item => `
+                    <div class="cart-item">
+                        <img src="${item.image}" class="cart-item-image" alt="${item.name}">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-meta">${item.type}</div>
+                        </div>
+                        <div class="cart-item-quantity">x${item.quantity}</div>
+                    </div>
+                `).join('');
+                cartItemsContainer.innerHTML = cartItemsHtml;
+            }
+            
+            updateEditNavigationButtons();
+        }
+        
+        function generateEditFormClassification() {
+            const container = document.getElementById('editFormsToCreate');
+            container.innerHTML = `
+                <div class="enhanced-card mb-3 selected">
+                    <div class="card-header-enhanced">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="editForm1" checked>
+                            <label class="custom-control-label" for="editForm1">
+                                <strong>Phiếu #1 - ${editFormData.manager}</strong>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Tài sản</th>
+                                        <th>Loại</th>
+                                        <th>Số lượng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${Object.values(editShoppingCart).map(item => `
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="${item.image}" width="30" height="30" class="rounded mr-2" alt="${item.name}">
+                                                    ${item.name}
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-info">${item.type}</span></td>
+                                            <td><strong>${item.quantity}</strong></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Prevent form submission on Enter
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
